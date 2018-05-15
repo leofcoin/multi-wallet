@@ -1,0 +1,32 @@
+{
+  "name": "multi-wallet",
+  "version": "0.1.0",
+  "description": "<version><codec><wallet>",
+  "main": "index.js",
+  "repository": "https://github.com/vandeurenglenn/multi-wallet",
+  "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "keywords": [
+    "wallet",
+    "sign",
+    "verify",
+    "multi",
+    "leofcoin",
+    "cryptocurrency"
+  ],
+  "dependencies": {
+    "bip39": "^2.5.0",
+    "bitcoinjs-lib": "^3.3.2",
+    "bs58": "^4.0.1",
+    "multi-signature": "^0.1.0"
+  },
+  "devDependencies": {
+    "rollup": "^0.59.0",
+    "rollup-plugin-uglify": "^3.0.0",
+    "tape": "^4.9.0"
+  }
+}
