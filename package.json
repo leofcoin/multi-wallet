@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "description": "<version><codec><wallet>",
   "main": "index.js",
+  "module": "src/index.js",
   "repository": "https://github.com/vandeurenglenn/multi-wallet",
   "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c && browserify index.js > browser.js --standalone=MultiWallet",
+    "serve": "live-server --port=2020",
+    "demo": "live-server --port=2020 --open=demo"
   },
   "keywords": [
     "wallet",

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <script src="../browser.js"></script>
+    <script>
+
+    const wallet = new MultiWallet('olivia')
+    wallet.import('66VHEYyaFkpxkntCNEcbpmftgFkUyjHP1LES25jg9Ce3hUNY1GtYcNx3nM3J879ugrz498eNuhcKMZ5GsC9ficAAfQNbMQqpXK69LiQy8rYc7XCua1qwakZ')
+    console.log(wallet);
+    const externalAccount = wallet.derive('m/0\'/0/0');
+    document.write(`<p>external address ${externalAccount.address}</p>`);
+    </script>
+  </body>
+</html>

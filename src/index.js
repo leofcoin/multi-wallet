@@ -1,7 +1,8 @@
-import { encode, decode } from 'bs58';
+import * as bs58 from 'bs58';
 import HDWallet from './hd-wallet';
 import MultiSignature from 'multi-signature';
 
+const { encode, decode } = bs58
 export default class MultiWallet extends HDWallet {
 	constructor(network, hdnode) {
 		super(network, hdnode);
