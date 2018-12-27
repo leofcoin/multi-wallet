@@ -23,7 +23,7 @@ export default class HDWallet {
 		const mnemonic = generateMnemonic();
 		const seed = mnemonicToSeed(mnemonic);
 		this.defineHDNode(HDNode.fromSeedBuffer(seed, network));
-		return { mnemonic }; // userpw
+		return mnemonic; // userpw
 	}
 
 	/**
