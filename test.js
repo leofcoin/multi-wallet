@@ -1,20 +1,20 @@
 const test = require('tape');
 const MultiHDWallet = require('./');
 const { encode, decode } = require('bs58');
-const { mnemonic, privateKey, multiWIF, hash, signature, publicKey, pub, address } = {
-	mnemonic: 'benefit garlic virtual final all poet lawsuit pact moral taste differ rubber',
-	privateKey: '5BycwKbGxPkhDsZrdDMSshKkt8iStj1e9SKtLK7drxP9eYGCbLy1DfEs9VR4LnFyzMw4pa1nEzp9UPDMrfqkWgPryHD6xm8MBC7kZJgmeYiqFiTs',
-	multiWIF: '66VHEYyaFkpxkntCNEcbpmftfrdQn6D34Q5gdvRpdfjVcyyarzTMwuGioP8HePksYMKghoW2w6cqGQJqq9mkchAm9f8By4nzGE6H7nkrzBBPPRoYU8CBsEH',
-	hash: encode(new Buffer('00000000000000000000000000000000')),
-	publicKey: '5Bz3dFZxdrX51hVBCEz3wimqhfvrxBrLuFSbVBEwdELYE8RdenWCYUjE6BeTWcaW5DoMLPhoM8Q6CiknDyNUaV571rzPW2Ypv7YmxqBenB9r2W49',
-	signature: 'LPiDvJPSZ5GXgvTyCBD6WPcNDb65J4AGi5',
-	pub: 'sbKq6LxyaCkqMi14bHdhcj67PRk4ymQSbqo55rxk4Zq6',
-	address: 'oRBxBtoWiVGQomJSfQgWFHWLbGYGVqxvoL'
+const { mnemonic, bs58, multiWIF, hash, signature, publicKey, pub, address, chainCode } = {
+	mnemonic: 'noble section royal vintage space tool devote tag also fluid alone electric',
+	bs58: '5BycwKbGxPkhDsZrdDUcTgQf9exz41y6ASPMgbYigHxtVARLTmUd67zibeKDCNBzqzjdSmER7AHLH22nf7toiUxGpMCAEo8UYmyQKzfWfzcFUVfJ',
+	multiWIF: '12nSSi35DyW2iMZCUj1Nk2hLaP9S1uVSyziSvGT6uJQD9rNRvj87mXaacmtbePPNfSFjjmnzzJcYHsHTs',
+	hash: Buffer.alloc(32, 1),
+	publicKey: '033f2870261a1f6e2a4a82ceb2032432c4fd606e818caab4ed9e8ec29f3c6d21ff',
+	signature: '12KN9pRvs96voUUS2SuTSwgfGCrTcpm8TyoaQN9Dx8aHKeYKV8QzJ8EXxreUrCeraSFwtPk8MUQSjP6cF1mpXQwUwcyV',
+	pub: '03eadd67d69c020878c1cd7b35e0c2bbb847b48edbbb9858468e8065dcb3106c1d',
+	address: '7K3pFGxGchyvW7LT2wpzVMZgHcRfmPRKXQKChPyY2GoQ5R9PSc'
 };
 
 const before = tape => {
 	tape.plan(1);
-	return new MultiHDWallet('olivia');
+	return new MultiHDWallet('leofcoin:olivia');
 };
 /**
  * @test
@@ -23,68 +23,72 @@ const before = tape => {
  */
 test('MultiHDWallet can generate', tape => {
 	const hdnode = before(tape);
-	hdnode.generate();
+	const generated = hdnode.generate();
 	tape.ok(true);
+});
+
+test('MultiHDWallet can export to MultiWIF', tape => {
+	const hdnode = before(tape);
+	hdnode.load(bs58);
+	hdnode.export();
+	tape.equal(hdnode.export(), multiWIF);
+});
+
+test('MultiHDWallet can import from multiWif', tape => {
+	const hdnode = before(tape);
+	hdnode.import(multiWIF);
+	tape.equal(hdnode.export(), multiWIF);
 });
 
 test('MultiHDWallet can load from saved', tape => {
 	const hdnode = before(tape);
-	hdnode.load(privateKey);
-	const saved = hdnode.save();
-	tape.equal(saved, privateKey);
+	hdnode.load(bs58)
+	tape.equal(hdnode.save(), bs58);
 });
 
 test('MultiHDWallet can recover using mnemonic', tape => {
 	const hdnode = before(tape);
 	hdnode.recover(mnemonic);
-	const saved = hdnode.save();
-	tape.equal(saved, privateKey);
-});
-
-test('MultiHDWallet can export to MultiWIF', tape => {
-	const hdnode = before(tape);
-	hdnode.load(privateKey);
-	const exported = hdnode.export();
-	tape.equal(exported, multiWIF);
-});
-
-test('MultiHDWallet can import from MultiWIF', tape => {
-	const hdnode = before(tape);
-	hdnode.import(multiWIF);
-	const saved = hdnode.save();
-	tape.equal(saved, privateKey);
-});
-
-test('MultiHDWallet can export publicKey', tape => {
-	const hdnode = before(tape);
-	hdnode.load(privateKey);
-	tape.equal(publicKey, hdnode.publicKey);
-});
-
-test('MultiHDWallet can import privateKey', tape => {
-	const hdnode = before(tape);
-	hdnode.load(privateKey);
-	tape.equal(privateKey, hdnode.privateKey);
+	tape.equal(hdnode.save(), bs58);
 });
 
 test('MultiHDWallet can sign', tape => {
 	const hdnode = before(tape);
-	hdnode.load(privateKey);
-	const child = hdnode.derive('m/0\'/0/0');
-	tape.equal(signature, child.sign(hash, child.address));
+	hdnode.load(bs58);
+	const account = hdnode.account(0)
+	const external = account.external(0)
+	const neutered = external.neutered;
+	console.log(external.privateKey);
+	tape.equal(signature, external.sign(hash));
 });
 
 test('MultiHDWallet can verify', tape => {
-	const hdnode = before(tape);
-	hdnode.load(privateKey);
-	const child = hdnode.derive('m/0\'/0/0');
-	const verified = child.verify(signature, hash, child.address);
+	let hdnode = before(tape);
+	hdnode.load(bs58);
+	const account = hdnode.account(0);
+	const neutered = account.external(0).neutered;
+	const verified = neutered.verify(signature, hash, publicKey);
 	tape.equal(verified, true);
 });
 
-test('bob can verify alice\'s signature', tape => {
+test('bob can verify alice\'s signature using Alice\'s address', tape => {
 	const hdnode = before(tape);
-	hdnode.generate(); // bob
-	const verified = hdnode.verify(signature, hash, address);
+	hdnode.fromAddress(address, null, 'leofcoin:olivia');
+	const verified = hdnode.verify(signature, hash);
 	tape.equal(verified, true);
 });
+
+test('bob can verify alice\'s signature using Alice\'s publicKey', tape => {
+	const hdnode = before(tape);
+	hdnode.fromPublicKey(publicKey, null, 'leofcoin:olivia');
+	const verified = hdnode.verify(signature, hash);
+	tape.equal(verified, true);
+});
+
+test('MultiHDWallet can create internal/external chains', tape => {
+	const hdnode = before(tape);
+	hdnode.load(bs58);
+	const account = hdnode.account(0);
+
+	tape.notEqual(account.internal(0).publicKey, account.external(0).publicKey);
+})

@@ -1,29 +1,59 @@
-import * as bs58 from 'bs58';
+import * as bs58Check from 'bs58check';
 import HDWallet from './hd-wallet';
 import MultiSignature from 'multi-signature';
+import { decode as decodeWIF } from 'wif';
+import varint from 'varint';
+const { encode, decode } = bs58Check;
 
-const { encode, decode } = bs58
+const numberToHex = number => {
+	number = number.toString(16);
+	if (number.length % 2 === 1) number = '0' + number;
+	return number;
+}
+
+// TODO: multihash addresses
+class HDAccount {
+	/**
+	 * @param {number} depth - acount depth
+	 */
+	constructor(node, depth = 0) {
+		this.node = node;
+		this.depth = depth;
+		this._prefix = `m/44'/280'/${depth}'/`;
+	}
+
+	/**
+	 * @param {number} index - address index
+	 */
+	internal(index = 0) {
+		return this.node.derivePath(`${this._prefix}1/${index}`)
+	}
+
+	/**
+	 * @param {number} index - address index
+	 */
+	external(index = 0) {
+		return this.node.derivePath(`${this._prefix}0/${index}`)
+	}
+}
+
 export default class MultiWallet extends HDWallet {
 	constructor(network, hdnode) {
 		super(network, hdnode);
 		this.multiCodec = this.network.multiCodec;
-		this.version = 0x00;
+		this.version = 0x00
 	}
 
-	get privateKey() {
-		return this.save();
+	get multiWIF() {
+		return this.encode();
 	}
 
-	get publicKeyBuffer() {
-		return this.hdnode.neutered().getPublicKeyBuffer();
+	get wif() {
+		return this.hdnode ? this.hdnode.toWIF() : this.decode(this.multiWIF).wif.privateKey;
 	}
 
-	get publicKey() {
-		return this.hdnode.neutered().toBase58();
-	}
-
-	get address() {
-		return this.hdnode.getAddress();
+	get neutered() {
+		return new MultiWallet('leofcoin:olivia', this.hdnode.neutered())
 	}
 
 	export() {
@@ -31,44 +61,59 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	import(multiWIF) {
-		const buffer = this.decode(multiWIF);
-		this.load(encode(buffer));
+		const decoded = this.decode(multiWIF);
+		this.fromPrivateKey(decoded.wif.privateKey)
 	}
 
 	encode() {
-		const base58 = this.save();
 		const buffer = Buffer.concat([
-			Buffer.from(this.version.toString()),
-			Buffer.from(this.multiCodec.toString()),
-			Buffer.from(decode(base58))
+			Buffer.from(varint.encode(this.version)),
+			Buffer.from(varint.encode(this.multiCodec)),
+			Buffer.from(this.hdnode.toWIF())
 		]);
 		return encode(buffer);
 	}
 
-	decode(base58) {
-		const buffer = decode(base58);
-		const version = parseInt(buffer.slice(0, 1));
-		const codec = parseInt(buffer.slice(1, 5));
-		const data = buffer.slice(5, buffer.length);
+	decode(bs58) {
+		let buffer = decode(bs58);
+		const version = varint.decode(buffer);
+		buffer = buffer.slice(varint.decode.bytes)
+		const codec = varint.decode(buffer);
+		const wif = decodeWIF(buffer.slice(varint.decode.bytes).toString());
 		if (version !== this.version) throw TypeError('Invalid version');
 		if (this.multiCodec !== codec) throw TypeError('Invalid multiCodec');
-		return data;
+		return { version, codec, wif };
 	}
 
-	sign(hash, address) {
-		if (!address) {
-			address = this.address;
-		}
+	sign(hash) {
 		return new MultiSignature(this.version, this.network.multiCodec)
-			.sign(hash, address);
+			.sign(hash, this.privateKeyBuffer);
+
 	}
 
-	verify(multiSignature, hash, address) {
+	verify(multiSignature, hash) {
 		return new MultiSignature(this.version, this.network.multiCodec)
-			.verify(multiSignature, hash, address);
+			.verify(multiSignature, hash, this.publicKeyBuffer)
 	}
 
-	derive(path) {
-		return new MultiWallet(this.network, this.hdnode.derivePath(path));
+	/**
+	 * @param {number} account - account to return chain for
+	 * @return { internal(addressIndex), external(addressIndex) }
+	 */
+	account(index) {
+		return new HDAccount(new MultiWallet(this.network, this.hdnode), index);
+	}
+
+	/**
+	 * m / purpose' / coin_type' / account' / change / aadress_index
+	 *
+	 * see https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
+	 */
+	derivePath(path) {
+		return new MultiWallet(this.network, this.hdnode.derivePath(path))
+	}
+
+	derive(index) {
+		return new MultiWallet(this.network, this.hdnode.derive(index));
 	}
 }
