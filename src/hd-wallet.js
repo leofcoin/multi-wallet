@@ -8,35 +8,35 @@ const { encode, decode } = bs58check;
 export default class HDWallet {
 
 	get chainCodeBuffer() {
-		return this.hdnode.chainCode;
+		return this.ifNotLocked(() => this.hdnode.chainCode)
 	}
 
 	get chainCode() {
-		return this.chainCodeBuffer.toString('hex');
+		return this.ifNotLocked(() => this.chainCodeBuffer.toString('hex'))
 	}
 
 	get privateKeyBuffer() {
-		return this.hdnode.privateKey
+		return this.ifNotLocked(() => this.hdnode.privateKey)
 	}
 
 	get privateKey() {
-		return this.privateKeyBuffer.toString('hex')
+		return this.ifNotLocked(() => this.privateKeyBuffer.toString('hex'))
 	}
 
 	get publicKeyBuffer() {
-		return this.hdnode.publicKey;
+		return this.ifNotLocked(() => this.hdnode.publicKey)
 	}
 
 	get publicKey() {
-		return this.publicKeyBuffer.toString('hex');
+		return this.ifNotLocked(() => this.publicKeyBuffer.toString('hex'))
 	}
 
 	get address() {
-		return encode(this.neutered.publicKeyBuffer);
+		return encode(this.neutered.publicKeyBuffer)
 	}
 
 	get accountAdress() {
-		return encode(this.hdnode.publicKeyBuffer)
+		return this.ifNotLocked(() => encode(this.hdnode.publicKeyBuffer))
 	}
 
 	constructor(network, hdnode) {
@@ -46,6 +46,11 @@ export default class HDWallet {
       this.network = network;
 
     if (hdnode) this.defineHDNode(hdnode);
+	}
+
+	ifNotLocked(fn, params) {
+		if (!this.locked) return fn(params);
+		return null
 	}
 
 	defineHDNode(value) {

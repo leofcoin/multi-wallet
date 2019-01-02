@@ -3,6 +3,8 @@ import HDWallet from './hd-wallet';
 import MultiSignature from 'multi-signature';
 import { decode as decodeWIF } from 'wif';
 import varint from 'varint';
+import AES from 'crypto-js/aes.js';
+import ENC from 'crypto-js/enc-utf8.js';
 const { encode, decode } = bs58Check;
 
 const numberToHex = number => {
@@ -45,15 +47,30 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	get multiWIF() {
-		return this.encode();
+		return this.ifNotLocked(() => this.encode())
 	}
 
 	get wif() {
-		return this.hdnode ? this.hdnode.toWIF() : this.decode(this.multiWIF).wif.privateKey;
+		return this.ifNotLocked(() => this.hdnode ? this.hdnode.toWIF() : this.decode(this.multiWIF).wif.privateKey)
 	}
 
 	get neutered() {
-		return new MultiWallet('leofcoin:olivia', this.hdnode.neutered())
+		const neutered = this.ifNotLocked(() => new MultiWallet('leofcoin:olivia', this.hdnode.neutered()))
+		if (neutered) this._neutered = neutered;
+		return this._neutered
+	}
+
+	lock(key, multiWIF) {
+		if (!multiWIF) multiWIF = this.multiWIF;
+		this.encrypted = AES.encrypt(multiWIF.toString('hex'), key).toString();
+		delete this.hdnode;
+		this.locked = true;
+	}
+
+	unlock(key, encrypted) {
+		if (!encrypted) encrypted = this.encrypted;
+		this.import(AES.decrypt(encrypted, key).toString(ENC));
+		this.locked = false;
 	}
 
 	export() {
@@ -61,8 +78,7 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	import(multiWIF) {
-		const decoded = this.decode(multiWIF);
-		this.fromPrivateKey(decoded.wif.privateKey)
+		this.fromPrivateKey(this.decode(multiWIF).wif.privateKey);
 	}
 
 	encode() {
