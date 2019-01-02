@@ -19,6 +19,8 @@ const multi = new MultiWallet(<network>, <BIP32>).load(<bs58>);
 const account = multi.account(0);
 const external = account.external(0); // first external address
 
+const internal = account.internal(0); // first internal address (used to receive change)
+
 const signature = external.sign(<data>, <key>) // returns base58 encoded MultiSignature
 const address = external.address // returns bs58check encoded address (without privateKey)
 
