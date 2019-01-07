@@ -1,6 +1,6 @@
 import * as bs58Check from 'bs58check';
 import HDWallet from './hd-wallet';
-import MultiSignature from 'multi-signature';
+import MultiSignature from './../node_modules/multi-signature/src/index.js';
 import { decode as decodeWIF } from 'wif';
 import varint from 'varint';
 import AES from 'crypto-js/aes.js';

@@ -4,7 +4,9 @@ export default {
   	messagePrefix: '\u0019Leofcoin Signed Message:',
   	pubKeyHash: 0x73, // o
   	scriptHash: 0x76, // p
+    multiTxHash: 0x8b4125, // omtx
   	payments: {
+      version: 0,
       unspent: 0x1fa443d7 // ounsp
     },
   	wif: 0x7D, // s

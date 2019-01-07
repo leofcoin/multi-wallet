@@ -13,7 +13,9 @@ const leofcoin = {
 	messagePrefix: '\u0019Leofcoin Signed Message:',
 	pubKeyHash: 0x30, // L
 	scriptHash: 0x37, // P
+	multiTxHash: 0x3adeed, // Lmtx
 	payments: {
+		version: 0,
 		unspent: 0x0d6e0327 // Lunsp
 	},
 	wif: 0x3F, // S
