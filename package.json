@@ -11,7 +11,8 @@
   "scripts": {
     "build": "rollup -c && browserify index.js > browser.js --standalone=MultiWallet",
     "serve": "live-server --port=2020",
-    "demo": "live-server --port=2020 --open=demo"
+    "demo": "live-server --port=2020 --open=demo",
+    "test": "node test.js"
   },
   "keywords": [
     "wallet",
@@ -30,6 +31,8 @@
   },
   "devDependencies": {
     "browserify": "^16.2.3",
+    "custom-html-tag": "^1.0.0",
+    "custom-renderer": "^1.1.0",
     "rollup": "^0.59.0",
     "rollup-plugin-uglify": "^3.0.0",
     "tape": "^4.9.0"
