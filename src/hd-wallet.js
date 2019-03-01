@@ -35,7 +35,7 @@ export default class HDWallet {
 		return encode(this.neutered.publicKeyBuffer)
 	}
 
-	get accountAdress() {
+	get accountAddress() {
 		return this.ifNotLocked(() => encode(this.hdnode.publicKeyBuffer))
 	}
 
