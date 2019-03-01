@@ -6,13 +6,94 @@
   </head>
   <body>
     <script src="../browser.js"></script>
-    <script>
+    <script type="module">
+    import html from './../node_modules/custom-html-tag/src/html.js';
+    import renderer from './../node_modules/custom-renderer/src/render.js';
 
-    const wallet = new MultiWallet('olivia')
-    wallet.import('66VHEYyaFkpxkntCNEcbpmftgFkUyjHP1LES25jg9Ce3hUNY1GtYcNx3nM3J879ugrz498eNuhcKMZ5GsC9ficAAfQNbMQqpXK69LiQy8rYc7XCua1qwakZ')
-    console.log(wallet);
-    const externalAccount = wallet.derive('m/0\'/0/0');
-    document.write(`<p>external address ${externalAccount.address}</p>`);
+    class Render {
+      constructor() {
+        this.set = [];
+      }
+
+      render({values, strings, keys}) {
+        const dict = values[values.length - 1] || {};
+        const changes = {};
+        let template = null;
+        if (!this.rendered) template = strings[0];
+
+        if (values[0] !== undefined) {
+          keys.forEach((key, i) => {
+            const string = strings[i + 1];
+            let value = Number.isInteger(key) ? values[key] : dict[key];
+            if (value === undefined && Array.isArray(key)) {
+              value = key.join('');
+            } else if (value === undefined && !Array.isArray(key) && this.set[i]) {
+              value = this.set[i].value; // set previous value, doesn't require developer to pass all properties
+            } else if (value === undefined && !Array.isArray(key) && !this.set[i]) {
+              value = '';
+            }
+            if (!this.rendered) {
+              template = template.replace(/(>)[^>]*$/g,  ` render-mixin-id="${key}">`)
+              template += `${value}${string}`;
+            }
+            if (this.set[key] && this.set[key] !== value) {
+              changes[key] = value;
+              this.set[key] = value;
+            } else if (!this.set[key]) {
+              this.set[key] = value;
+              changes[key] = value
+            }
+          });
+        } else {
+          template += strings[0];
+        }
+        return {
+          template,
+          changes
+        };
+      }
+
+    }
+
+    let render = new Render();
+
+    const wallet = new MultiWallet('leofcoin:olivia')
+    const mnemonic = wallet.generate();
+
+    const wif = wallet.wif;
+    const multiWIF = wallet.multiWIF;
+    const privateKey = wallet.privateKey;
+    const publicKey = wallet.publicKey;
+    const address = wallet.address;
+    const account = wallet.account(0);
+    const internal = account.internal(0).address;
+    const external = account.external(0).address;
+
+    const template = html`
+    <h1>MultiWallet</h1>
+    <h2>Mnemonic</h2>
+    <span>${'mnemonic'}</span>
+    <h2>Wallet Import Format</h2>
+    <span>${'wif'}</span>
+    <h2>Multi Wallet Import Format</h2>
+    <span>${'multiWIF'}</span>
+
+    <h2>publicKey</h2>
+    <span>${'publicKey'}</span>
+
+    <h2>privateKey</h2>
+    <span>${'privateKey'}</span>
+
+    <h2>address</h2>
+    <span>${'address'}</span>
+
+    <h2>account 0</h2>
+    <h3>Internal</h3>
+    <span>${'internal'}</span>
+    <h3>External</h3>
+    <span>${'external'}</span>
+    `;
+    document.body.innerHTML = render.render(template({ mnemonic, wif, multiWIF, privateKey, publicKey, address, account, internal, external })).template;
     </script>
   </body>
 </html>

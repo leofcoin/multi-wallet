@@ -1,4 +1,10 @@
 # multi-wallet
+
+[![Build Status](https://img.shields.io/travis/VandeurenGlenn/multi-wallet/master.svg?style=for-the-badge)](https://travis-ci.org/vandeurenglenn/multi-wallet)
+[![npm](https://img.shields.io/npm/dt/multi-wallet.svg?style=for-the-badge)](https://www.npmjs.com/package/multi-wallet)
+[![David](https://img.shields.io/david/vandeurenglenn/multi-wallet.svg?style=for-the-badge)](https://github.com/vandeurenglenn/multi-wallet)
+[![npm](https://img.shields.io/npm/v/multi-wallet.svg?style=for-the-badge)](https://www.npmjs.com/package/multi-wallet)
+
 > Identifiable wallet <version><codec><wallet>
 
 ## install
@@ -49,4 +55,4 @@ In short:
 TODO...
 
 ## LICENSE
-Copyright (c) 2018 vandeurenglenn
+Copyright (c) 2019 vandeurenglenn

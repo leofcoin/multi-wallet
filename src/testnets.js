@@ -1,6 +1,5 @@
 export default {
   'leofcoin:olivia': {
-    name: 'ol',
   	messagePrefix: '\u0019Leofcoin Signed Message:',
   	pubKeyHash: 0x73, // o
   	scriptHash: 0x76, // p
