@@ -1,4 +1,3 @@
-import { generateMnemonic, mnemonicToSeed } from 'bip39';
 import HDNode from 'bitcoinjs-lib/src/hdnode';
 import networks from './networks';
 
@@ -18,7 +17,12 @@ export default class HDWallet {
 		});
 	}
 
-	generate(network) {
+  /**
+   *
+   * @return Promise
+   */
+	async generate(network) {
+    const { generateMnemonic, mnemonicToSeed } = await import('bip39');
 		network = networks[network] || this.network;
 		const mnemonic = generateMnemonic();
 		const seed = mnemonicToSeed(mnemonic);
@@ -28,11 +32,14 @@ export default class HDWallet {
 
 	/**
    * recover using mnemonic (recovery word list)
+   * @return Promise
    */
-	recover(mnemonic, network) {
+	async recover(mnemonic, network) {
+    const { mnemonicToSeed } = await import('bip39');
 		network = networks[network] || this.network;
 		const seed = mnemonicToSeed(mnemonic);
 		this.defineHDNode(HDNode.fromSeedBuffer(seed, network));
+    return;
 	}
 
 	load(base58, network) {

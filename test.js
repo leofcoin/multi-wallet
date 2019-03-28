@@ -23,8 +23,7 @@ const before = tape => {
  */
 test('MultiHDWallet can generate', tape => {
 	const hdnode = before(tape);
-	hdnode.generate();
-	tape.ok(true);
+	hdnode.generate().then(() => tape.ok(true));
 });
 
 test('MultiHDWallet can load from saved', tape => {
@@ -36,9 +35,11 @@ test('MultiHDWallet can load from saved', tape => {
 
 test('MultiHDWallet can recover using mnemonic', tape => {
 	const hdnode = before(tape);
-	hdnode.recover(mnemonic);
-	const saved = hdnode.save();
-	tape.equal(saved, privateKey);
+	hdnode.recover(mnemonic).then(() => {
+    const saved = hdnode.save();
+  	tape.equal(saved, privateKey);
+  });
+
 });
 
 test('MultiHDWallet can export to MultiWIF', tape => {
@@ -84,7 +85,9 @@ test('MultiHDWallet can verify', tape => {
 
 test('bob can verify alice\'s signature', tape => {
 	const hdnode = before(tape);
-	hdnode.generate(); // bob
-	const verified = hdnode.verify(signature, hash, address);
-	tape.equal(verified, true);
+	hdnode.generate().then(() => {
+    const verified = hdnode.verify(signature, hash, address);
+  	tape.equal(verified, true);
+  }); // bob
+
 });
