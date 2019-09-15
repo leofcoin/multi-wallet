@@ -23,18 +23,18 @@
     "cryptocurrency"
   ],
   "dependencies": {
-    "bip32": "^1.0.2",
-    "bip39": "^2.5.0",
+    "bip32": "^1.0.4",
+    "bip39": "^2.6.0",
     "bs58": "^4.0.1",
     "crypto-js": "^3.1.9-1",
     "multi-signature": "^1.0.1"
   },
   "devDependencies": {
-    "browserify": "^16.2.3",
+    "browserify": "^16.5.0",
     "custom-html-tag": "^1.0.0",
     "custom-renderer": "^1.1.0",
     "rollup": "^0.59.0",
     "rollup-plugin-uglify": "^3.0.0",
-    "tape": "^4.9.0"
+    "tape": "^4.11.0"
   }
 }
