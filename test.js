@@ -25,12 +25,13 @@ test('MultiWallet', tape => {
 	tape.plan(12);
 	let hdnode = before(tape);
 	const generated = hdnode.generate();
+	console.log(hdnode.id);
 	tape.ok(generated, 'generate wallet');
-
+	
 	hdnode = before(tape);
 	hdnode.load(bs58);
 	tape.equal(hdnode.export(), multiWIF, 'export to MultiWIF');
-
+	
 	hdnode = before(tape);
 	hdnode.import(multiWIF);
 	tape.equal(hdnode.export(), multiWIF, 'import from multiWif');
@@ -68,7 +69,6 @@ test('MultiWallet', tape => {
 	account = hdnode.account(0);
 
 	tape.notEqual(account.internal(0).publicKey, account.external(0).publicKey, 'create internal/external chains');
-
 
 	hdnode = before(tape);
 	hdnode.lock('pasword', multiWIF)

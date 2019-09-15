@@ -4,6 +4,7 @@ import MultiSignature from 'multi-signature';
 import { decode as decodeWIF } from 'wif';
 import varint from 'varint';
 import AES from 'crypto-js/aes.js';
+import sha512 from 'crypto-js/sha512.js';
 import ENC from 'crypto-js/enc-utf8.js';
 const { encode, decode } = bs58Check;
 
@@ -44,6 +45,14 @@ export default class MultiWallet extends HDWallet {
 		super(network, hdnode);
 		this.multiCodec = this.network.multiCodec;
 		this.version = 0x00
+	}
+
+	get id() {
+		const buffer = Buffer.concat([
+			Buffer.from(varint.encode(this.multiCodec)),
+			Buffer.from(this.account(0).node.neutered.publicKey)
+		]);;
+		return encode(buffer)
 	}
 
 	get multiWIF() {
