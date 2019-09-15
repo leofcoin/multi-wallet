@@ -1,6 +1,6 @@
 {
   "name": "multi-wallet",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "<version><codec><wallet>",
   "main": "index.js",
   "module": "src/index.js",
