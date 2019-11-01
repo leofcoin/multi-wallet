@@ -50,8 +50,8 @@ export default class MultiWallet extends HDWallet {
 	get id() {
 		const buffer = Buffer.concat([
 			Buffer.from(varint.encode(this.multiCodec)),
-			Buffer.from(this.account(0).node.neutered.publicKey)
-		]);;
+			Buffer.from(this.account(0).node.neutered.publicKey, 'hex')
+		]);
 		return encode(buffer)
 	}
 
