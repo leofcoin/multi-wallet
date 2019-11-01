@@ -68,6 +68,13 @@ export default class MultiWallet extends HDWallet {
 		if (neutered) this._neutered = neutered;
 		return this._neutered
 	}
+	
+	fromId(id) {
+		let buffer = decode(id)
+		const codec = varint.decode(buffer)
+		buffer = buffer.slice(varint.decode.bytes)
+		this.fromPublicKey(buffer, null, 'leofcoin:olivia')
+	}
 
 	lock(key, multiWIF) {
 		if (!multiWIF) multiWIF = this.multiWIF;
