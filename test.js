@@ -26,6 +26,9 @@ test('MultiWallet', tape => {
 	let hdnode = before(tape);
 	const generated = hdnode.generate();
 	console.log(hdnode.id);
+	const id = hdnode.id
+	hdnode = before(tape)
+	hdnode.fromId(id)
 	tape.ok(generated, 'generate wallet');
 	
 	hdnode = before(tape);
