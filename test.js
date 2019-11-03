@@ -51,21 +51,21 @@ test('MultiWallet', tape => {
 	hdnode.load(bs58);
 	let account = hdnode.account(0)
 	let external = account.external(0)
-	tape.equal(signature, external.sign(hash), 'sign');
+	tape.equal(signature, encode(external.sign(hash)), 'sign');
 
 	hdnode = before(tape);
 	hdnode.load(bs58);
 	account = hdnode.account(0);
 	const neutered = account.external(0).neutered;
-	tape.equal(neutered.verify(signature, hash, publicKey), true, 'verify');
+	tape.equal(neutered.verify(decode(signature), hash, publicKey), true, 'verify');
 
 	hdnode = before(tape);
 	hdnode.fromAddress(address, null, 'leofcoin:olivia');
-	tape.equal(hdnode.verify(signature, hash), true, 'bob can verify alice\'s signature using Alice\'s address');
+	tape.equal(hdnode.verify(decode(signature), hash), true, 'bob can verify alice\'s signature using Alice\'s address');
 
 	hdnode = before(tape);
 	hdnode.fromPublicKey(publicKey, null, 'leofcoin:olivia');
-	tape.equal(hdnode.verify(signature, hash), true, 'bob can verify alice\'s signature using Alice\'s publicKey');
+	tape.equal(hdnode.verify(decode(signature), hash), true, 'bob can verify alice\'s signature using Alice\'s publicKey');
 
 	hdnode = before(tape);
 	hdnode.load(bs58);
