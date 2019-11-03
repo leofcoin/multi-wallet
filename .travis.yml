@@ -16,9 +16,9 @@ script:
 deploy:
   skip_cleanup: true
   provider: npm
+  email: vandeurenglenn@gmail.com
   on:
     tags: true
     repo: VandeurenGlenn/multi-wallet
-    email: vandeurenglenn@gmail.com
   api_key:
     secure: kH70LMrp/fUrdBWUytTBiVpcvULK7BNICywv3Zq12dYnep9QjHs5yRMy5rXRsU64NZzELjx8fg3k+aIaDmCincjhyFvVxAfrv67QYPoctvhRyC2Vss/KHC8FJZPceLXE9aUhf33XZFTUc0U2P8n9TPAvF+BvZy/3QnNJhZ5tE9BSwSAAReqMS96zJseCFUJGj63K5ypMds9s+afiEg/vrtSnyrRxKMBFpPgMG/QxLzEasiLDCW8RTY6G/wdHXrYFiULelL2x4TfnZAycwTWIvzvlG7OeG1V4K1RE1uL5YtdSZguULVW9iOSqQuRnM3GSXBs2iY4HFzUe0VQkCRuCGbVvnTLR3bOEPbHCrM3oUHF9dgvlhbAMiDRlJ5f9CmEWHF2DCjdwYxgUZEfSsWHpwiZZJ1f3LuCVFWE0/ThM3pKL3HfwhZyFCo4eFBxh9xpNTlzyXWTt2wDrjPPL3m1cXOMdQt2Ph00qxM9d8BIYxZJSTbd73ocEuleGN5QY9CVZvoFXYFkZHwFrS277OGCBYQiZ2whE9mIzZ8N1plvz/0Mo67OWWG7PsxiO9w4eTvHeFVGKp5VfjRGZMu+GzwdW5lG/M0mPt+PVtAss3BO6TOnTtq/YkzZ0dT64rCe1hbaNssf39CA2SvQiBaCd1L8YUyc0lkR/7DeWcePpmi10gT8=
