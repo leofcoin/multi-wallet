@@ -21,7 +21,7 @@ const leofcoin = {
 	wif: 0x3F, // S
 	multiCodec: 0x3c4,
 	bip32: { public: 0x13BBF2D4, private: 0x13BBCBC4 },
-	olivia: testnets['leofcoin:olivia']
+	testnet: testnets['leofcoin:olivia']
 };
 
 const bitcoin = {

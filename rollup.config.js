@@ -12,7 +12,7 @@ export default [
 		experimentalCodeSplitting: true,
 		experimentalDynamicImport: true,
     plugins: [
-      uglify()
+      // uglify()
     ]
 	}
 ]

@@ -1,10 +1,10 @@
 {
-  "name": "multi-wallet",
-  "version": "1.2.6",
+  "name": "@leofcoin/multi-wallet",
+  "version": "2.0.0",
   "description": "<version><codec><wallet>",
   "main": "index.js",
   "module": "src/index.js",
-  "repository": "https://github.com/vandeurenglenn/multi-wallet",
+  "repository": "https://github.com/leofcoin/multi-wallet",
   "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
   "license": "MIT",
   "private": false,
@@ -23,18 +23,17 @@
     "cryptocurrency"
   ],
   "dependencies": {
-    "bip32": "^1.0.4",
-    "bip39": "^2.6.0",
-    "bs58": "^4.0.1",
-    "crypto-js": "^3.1.9-1",
+    "bip32": "^2.0.5",
+    "bip39": "^3.0.2",
+    "crypto-js": "^4.0.0",
     "multi-signature": "^1.1.0"
   },
   "devDependencies": {
-    "browserify": "^16.5.0",
+    "browserify": "^16.5.1",
     "custom-html-tag": "^1.0.0",
     "custom-renderer": "^1.1.0",
-    "rollup": "^0.59.4",
-    "rollup-plugin-uglify": "^3.0.0",
-    "tape": "^4.11.0"
+    "rollup": "^2.10.7",
+    "rollup-plugin-uglify": "^6.0.4",
+    "tape": "^4.13.2"
   }
 }
