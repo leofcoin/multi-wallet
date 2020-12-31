@@ -22,7 +22,7 @@ class HDAccount {
 	constructor(node, depth = 0) {
 		this.node = node;
 		this.depth = depth;
-		this._prefix = `m/44'/280'/${depth}'/`;
+		this._prefix = `m/44'/${node.network.coin_type}'/${depth}'/`;
 	}
 
 	/**
@@ -65,7 +65,7 @@ export default class MultiWallet extends HDWallet {
 		if (neutered) this._neutered = neutered;
 		return this._neutered
 	}
-	
+
 	fromId(id) {
 		let buffer = decode(id)
 		const codec = varint.decode(buffer)
@@ -89,7 +89,7 @@ export default class MultiWallet extends HDWallet {
 	export() {
 		return this.encode();
 	}
-	
+
 	/**
 	 * encodes the multiWIF and loads wallet from bs58
 	 *
@@ -104,7 +104,7 @@ export default class MultiWallet extends HDWallet {
 		}, networks['leofcoin']['testnet'])
 		this.load(bs58, this.network)
 	}
-	
+
 	/**
 	 * @return base58Check encoded string
 	 */
@@ -122,7 +122,7 @@ export default class MultiWallet extends HDWallet {
 		const version = varint.decode(buffer);
 		buffer = buffer.slice(varint.decode.bytes)
 		const multiCodec = varint.decode(buffer);
-		buffer = buffer.slice(varint.decode.bytes)		
+		buffer = buffer.slice(varint.decode.bytes)
 		bs58 = encode(buffer)
 		if (version !== this.version) throw TypeError('Invalid version');
 		if (this.multiCodec !== multiCodec) throw TypeError('Invalid multiCodec');

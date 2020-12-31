@@ -18,6 +18,7 @@ const leofcoin = {
 		version: 0,
 		unspent: 0x0d6e0327 // Lunsp
 	},
+	coin_type: 640,
 	wif: 0x3F, // S
 	multiCodec: 0x3c4,
 	bip32: { public: 0x13BBF2D4, private: 0x13BBCBC4 },
@@ -30,6 +31,7 @@ const bitcoin = {
 	pubKeyHash: 0x00,
 	scriptHash: 0x05,
 	wif: 0x80,
+	coin_type: 0,
 	bip32: {
 		public: 0x0488b21e, private: 0x0488ade4
 	},
@@ -47,6 +49,18 @@ const litecoin = {
 	}
 };
 
+const ethereum = {
+	messagePrefix: '\x19Ethereum Signed Message:\n',
+	pubKeyHash: 0x30,
+	scriptHash: 0x32,
+	bip32: {
+		private: 0x0488ADE4, public: 0x0488B21E
+	},
+	coin_type: 60,
+	wif: 0x45,//E
+	multiCodec: 0x3c5
+}
+
 /**
  * Our & supported networks
  * @return {leofcoin, olivia}
@@ -54,5 +68,6 @@ const litecoin = {
 export default {
 	leofcoin,
 	bitcoin,
-	litecoin
+	litecoin,
+	ethereum
 };

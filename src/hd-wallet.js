@@ -3,6 +3,9 @@ import bip32 from 'bip32'
 import networks from './networks';
 import { fromNetworkString } from './network-utils.js';
 import bs58check from 'bs58check';
+import createKeccakHash from 'keccak';
+import { publicKeyConvert } from 'secp256k1'
+import ecc from 'tiny-secp256k1'
 
 const { encode, decode } = bs58check;
 export default class HDWallet {
@@ -32,6 +35,12 @@ export default class HDWallet {
 	}
 
 	get address() {
+		if (this.hdnode.network.coin_type === 60) {
+			let buffer = ecc.pointFromScalar(this.hdnode.__D, false)
+			buffer = Buffer.from(publicKeyConvert(buffer, false)).slice(1)
+			let hash = createKeccakHash('keccak256').update(buffer).digest()
+			return hash.slice(-20).toString('hex')
+		}
 		return encode(this.neutered.publicKeyBuffer)
 	}
 
@@ -95,11 +104,16 @@ export default class HDWallet {
 		return this.hdnode.toBase58();
 	}
 
-	fromAddress(bs58, chainCode, network) {
+	fromAddress(address, chainCode, network) {
 		network = this.validateNetwork(network);
-		bs58 = decode(bs58);
-		if (!chainCode || chainCode && !Buffer.isBuffer(chainCode)) chainCode = bs58.slice(1)
-		this.defineHDNode(bip32.fromPublicKey(bs58, chainCode, network))
+		// if (network.coin_type === 60) {
+		// 	address = Buffer.from(address, 'hex')
+		// } else {
+			address = decode(address);
+		// }
+
+		if (!chainCode || chainCode && !Buffer.isBuffer(chainCode)) chainCode = address.slice(1)
+		this.defineHDNode(bip32.fromPublicKey(address, chainCode, network))
 	}
 
 	fromPublicKey(hex, chainCode, network) {
