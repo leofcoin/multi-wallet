@@ -301,7 +301,6 @@ class MultiWallet extends HDWallet {
 	lock(key, multiWIF) {
 		if (!multiWIF) multiWIF = this.multiWIF;
 		this.encrypted = AES.encrypt(multiWIF.toString('hex'), key).toString();
-		delete this.hdnode;
 		this.locked = true;
 	}
 
