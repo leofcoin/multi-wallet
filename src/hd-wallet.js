@@ -48,6 +48,13 @@ export default class HDWallet {
 		return this.ifNotLocked(() => encode(this.hdnode.publicKeyBuffer))
 	}
 
+	get isTestnet() {
+		if (typeof network === 'string')
+			this.network = fromNetworkString(network);
+
+		return Boolean(this.network.coin_type === 1)
+	}
+
 	constructor(network, hdnode) {
 		if (typeof network === 'string')
 			this.network = fromNetworkString(network);
