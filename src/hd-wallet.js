@@ -36,8 +36,9 @@ export default class HDWallet {
 
 	get address() {
 		// override testnet coin_type
-		const coin_type = this.hdnode.network.coin_type
-		if (coin_type === 60 || this.networkName.split(':')[0] === 'ethereum') {
+		let coin_type = this.hdnode.network.coin_type
+		if (coin_type === 1 && this.networkName.split(':')[0] === 'ethereum') coin_type = 60
+		if (coin_type === 60) {
 			let buffer = ecc.pointFromScalar(this.hdnode.__D, false)
 			buffer = Buffer.from(publicKeyConvert(buffer, false)).slice(1)
 			let hash = createKeccakHash('keccak256').update(buffer).digest()
