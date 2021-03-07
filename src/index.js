@@ -42,8 +42,9 @@ class HDAccount {
 
 export default class MultiWallet extends HDWallet {
 	constructor(network, hdnode) {
+		const networkName = network
 		super(network, hdnode);
-		this.networkName = network
+		if (typeof networkName === 'string') this.networkName = networkName
 		this.multiCodec = this.network.multiCodec;
 		this.version = 0x00
 	}

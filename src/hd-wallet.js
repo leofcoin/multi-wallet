@@ -35,7 +35,9 @@ export default class HDWallet {
 	}
 
 	get address() {
-		if (this.hdnode.network.coin_type === 60) {
+		// override testnet coin_type
+		const coin_type = this.hdnode.network.coin_type
+		if (coin_type === 60 || this.networkName.split(':')[0] === 'ethereum') {
 			let buffer = ecc.pointFromScalar(this.hdnode.__D, false)
 			buffer = Buffer.from(publicKeyConvert(buffer, false)).slice(1)
 			let hash = createKeccakHash('keccak256').update(buffer).digest()
@@ -50,15 +52,16 @@ export default class HDWallet {
 
 	get isTestnet() {
 		if (typeof network === 'string')
-			this.network = fromNetworkString(network);
+			this.hdnode.network = fromNetworkString(network);
 
-		return Boolean(this.network.coin_type === 1)
+		return Boolean(this.hdnode.network.coin_type === 1)
 	}
 
 	constructor(network, hdnode) {
-		if (typeof network === 'string')
-			this.network = fromNetworkString(network);
-		else if (typeof network === 'object')
+		if (typeof network === 'string') {
+			this.networkName = network
+			this.network = fromNetworkString(network)
+		} else if (typeof network === 'object')
       this.network = network;
 
     if (hdnode) this.defineHDNode(hdnode);

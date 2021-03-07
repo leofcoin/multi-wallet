@@ -18,6 +18,8 @@ for (const key of Object.keys(config)) {
 
     let hdnode = new MultiWallet(key)
     hdnode.load(bs58);
+    console.log(hdnode.address);
+    console.log(hdnode.publicKey);
   	tape.equal(hdnode.export(), multiWIF, 'export to MultiWIF');
 
     hdnode = new MultiWallet(key)
@@ -60,7 +62,7 @@ for (const key of Object.keys(config)) {
     hdnode = new MultiWallet(key);
   	hdnode.lock('pasword', multiWIF)
   	tape.ok(hdnode.encrypted && !hdnode.publicKey, 'lock')
-    
+
   	hdnode = new MultiWallet(key);
   	hdnode.unlock('pasword', encrypted)
   	tape.equal(hdnode.multiWIF, multiWIF, 'unlock')

@@ -23,19 +23,19 @@
     "cryptocurrency"
   ],
   "dependencies": {
-    "bip32": "^2.0.5",
-    "bip39": "^3.0.2",
+    "bip32": "^2.0.6",
+    "bip39": "^3.0.3",
     "crypto-js": "^4.0.0",
     "keccak": "^3.0.1",
     "multi-signature": "^1.1.0",
     "secp256k1": "^4.0.2"
   },
   "devDependencies": {
-    "browserify": "^16.5.1",
+    "browserify": "^16.5.2",
     "custom-html-tag": "^1.0.0",
     "custom-renderer": "^1.1.0",
-    "rollup": "^2.10.7",
+    "rollup": "^2.40.0",
     "rollup-plugin-uglify": "^6.0.4",
-    "tape": "^4.13.2"
+    "tape": "^4.13.3"
   }
 }

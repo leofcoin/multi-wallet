@@ -19,7 +19,16 @@ module.exports = {
     multiWIF: '1F3rcHQfLnBJNa1nxNSAtEBD8YoTwBNKMAESq4La7m1uBQsjHnDe5uwax6CJxaaMBaKQnyE78PeKRmjmf1nk9ZfAykmhNThHKdGg8rgSSrLhSvgd8x6Z',
     publicKey: '03779a814ca9782f05eb57706c4c31f5d5ce163b74cb71303e4123e45519e8ea28',
     signature: '12Kk71UNWfU1cwJUnwMXvhR5deDaNMsz2ctyQTgZZ8WpE67xRXivfWELcZeLjUKqZktezTu5yT9ZdtmhgXdVuycA98QB',
-    address: 'aaea7ac10257243f0412d15a0eeba1fbf4fb7a9b',
+    address: 'd9faf75006454201794da69f9793c4a7a0fbd6eb',
+    encrypted: 'U2FsdGVkX192SaXvyUE7iqT43IxelMWxSZo7rgPxuCoX9uBynrigtBzKKC9KkTa5lthMMoSv3ugSDGvwU4KuwxmPPM0RJ73G4iZd73MrvGh0pQTICxSAk306J1LUk75eYkQhTw7uOKWnYBG5YvqZaefBnGVVayM3PCDqObNf6AQDxBOvRYhVnFdqildXtpbM'
+  },
+  'ethereum:kovan': {
+    ...defaultConfig,
+    multiWIF: '1F3rcHQfLnBJNa1nxNSAtEBD8YoTwBNKMAESq4La7m1uBQsjHnDe5uwax6CJxaaMBaKQnyE78PeKRmjmf1nk9ZfAykmhNThHKdGg8rgSSrLhSvgd8x6Z',
+    bs58: 'xprv9s21ZrQH143K2WAsssZEn1L5mnzfxd7PChziV6W3rJgtUu28vHKvVdsG6irQHzXPH6D3T8e4Rqp9hboUGNSKZv7Te1EEMFxpQKLqrih3jZp',
+    publicKey: '02ef84b74556cd5b9dbb913aa0e015da994ed99d7dad470079221ac64df16817c4',
+    signature: '12Kk7N6aFmD6w4wthG7BHJfnsnzVsARVUYorDwfuqE6G5AFjJTcaRHhJqNetjKkD5NH2pk2MfGqaBzGhcbZWZj354C5G',
+    address: 'd9faf75006454201794da69f9793c4a7a0fbd6eb',
     encrypted: 'U2FsdGVkX192SaXvyUE7iqT43IxelMWxSZo7rgPxuCoX9uBynrigtBzKKC9KkTa5lthMMoSv3ugSDGvwU4KuwxmPPM0RJ73G4iZd73MrvGh0pQTICxSAk306J1LUk75eYkQhTw7uOKWnYBG5YvqZaefBnGVVayM3PCDqObNf6AQDxBOvRYhVnFdqildXtpbM'
   }
 }
