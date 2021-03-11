@@ -183,7 +183,7 @@ class HDWallet {
 	get address() {
 		// override testnet coin_type
 		let coin_type = this.hdnode.network.coin_type;
-		if (coin_type === 1 && this.networkName.split(':')[0] === 'ethereum') coin_type = 60;
+		if (coin_type === 1 && this.networkName?.split(':')[0] === 'ethereum') coin_type = 60;
 		if (coin_type === 60) {
 			let buffer = ecc__default['default'].pointFromScalar(this.hdnode.__D, false);
 			buffer = Buffer.from(secp256k1.publicKeyConvert(buffer, false)).slice(1);
