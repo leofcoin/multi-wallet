@@ -10,6 +10,13 @@ test('basic wallet functionality', async tape => {
 	tape.ok(generated, 'generate wallet');
 })
 
+test('basic wallet functionality', async tape => {
+  tape.plan(1)
+  const wallet = new MultiWallet('leofcoin:olivia')
+	const generated = await wallet.generate();
+	tape.ok(generated, 'generate wallet');
+})
+
 for (const key of Object.keys(config)) {
   const { mnemonic, bs58, multiWIF, hash, publicKey, signature, address, encrypted } = config[key]
 
@@ -18,8 +25,6 @@ for (const key of Object.keys(config)) {
 
     let hdnode = new MultiWallet(key)
     hdnode.load(bs58);
-    console.log(hdnode.address);
-    console.log(hdnode.publicKey);
   	tape.equal(hdnode.export(), multiWIF, 'export to MultiWIF');
 
     hdnode = new MultiWallet(key)

@@ -101,7 +101,7 @@ export default class MultiWallet extends HDWallet {
 			if (c.multiCodec===multiCodec) return c
 			else if (c.testnet && c.testnet.multiCodec === multiCodec) return c.testnet
 			else return p
-		}, networks['leofcoin']['testnet'])
+		}, networks['leofcoin'])
 		this.load(bs58, this.network)
 	}
 

@@ -183,8 +183,11 @@ class HDWallet {
 	get address() {
 		// override testnet coin_type
 		let coin_type = this.hdnode.network.coin_type;
-		if (coin_type === 1 && this.networkName?.split(':')[0] === 'ethereum') coin_type = 60;
-		if (coin_type === 60) {
+		if (coin_type === 1) {
+			if (this.networkName?.split(':')[0] === 'ethereum') coin_type = 60;
+			if (this.networkName?.split(':')[0] === 'leofcoin') coin_type = 640;
+		}
+		if (coin_type === 60 || coin_type === 640) {
 			let buffer = ecc__default['default'].pointFromScalar(this.hdnode.__D, false);
 			buffer = Buffer.from(secp256k1.publicKeyConvert(buffer, false)).slice(1);
 			let hash = createKeccakHash__default['default']('keccak256').update(buffer).digest();
@@ -370,7 +373,7 @@ class MultiWallet extends HDWallet {
 			if (c.multiCodec===multiCodec) return c
 			else if (c.testnet && c.testnet.multiCodec === multiCodec) return c.testnet
 			else return p
-		}, networks['leofcoin']['testnet']);
+		}, networks['leofcoin']);
 		this.load(bs58, this.network);
 	}
 
@@ -42497,7 +42500,7 @@ module.exports={
   "_args": [
     [
       "elliptic@6.5.3",
-      "D:\\Workspace\\swap\\multi-wallet"
+      "D:\\Workspace\\multi-wallet"
     ]
   ],
   "_from": "elliptic@6.5.3",
@@ -42524,7 +42527,7 @@ module.exports={
   ],
   "_resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.5.3.tgz",
   "_spec": "6.5.3",
-  "_where": "D:\\Workspace\\swap\\multi-wallet",
+  "_where": "D:\\Workspace\\multi-wallet",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
