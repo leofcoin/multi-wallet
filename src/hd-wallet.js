@@ -1,5 +1,5 @@
 import { generateMnemonic, mnemonicToSeed } from 'bip39';
-import bip32 from 'bip32'
+import * as bip32 from 'bip32'
 import networks from './networks';
 import { fromNetworkString } from './network-utils.js';
 import bs58check from 'bs58check';
