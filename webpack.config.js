@@ -11,7 +11,7 @@ module.exports = [
       }),
       new webpack.ProvidePlugin({
         process: 'process/browser',
-      }),      
+      }),
       new webpack.IgnorePlugin({
         resourceRegExp: /^\.\/wordlists\/(?!english)/
       }) // bi39 wordlist (mnemonic) only english
@@ -28,10 +28,13 @@ module.exports = [
         // "os": require.resolve("os-browserify")
       }
     },
+
+    experiments: {
+      outputModule: true
+    },
     output: {
       library: {
-        name: 'MultiWallet',
-        type: 'global'
+        type: 'module'
       },
       filename: 'browser.js',
       path: path.resolve(__dirname, 'dist'),
@@ -64,10 +67,12 @@ module.exports = [
         // "os": require.resolve("os-browserify")
       }
     },
+    experiments: {
+      outputModule: true
+    },
     output: {
       library: {
-        name: 'MultiWallet',
-        type: 'global'
+        type: 'module'
       },
       filename: 'browser.min.js',
       path: path.resolve(__dirname, 'dist'),
@@ -83,8 +88,11 @@ module.exports = [
         resourceRegExp: /^\.\/wordlists\/(?!english)/
       }) // bi39 wordlist (mnemonic) only english
     ],
-    target: 'node',
+    target: ['node'],
     output: {
+      library: {
+        type: 'commonjs2'
+      },
       filename: 'cjs.js',
       path: path.resolve(__dirname, 'dist'),
     },
