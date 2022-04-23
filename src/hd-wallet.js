@@ -92,10 +92,10 @@ export default class HDWallet {
 		return network;
 	}
 
-	async generate(network) {
+	async generate(password, network) {
 		network = this.validateNetwork(network);
 		const mnemonic = generateMnemonic(256);
-		const seed = await mnemonicToSeed(mnemonic);
+		const seed = await mnemonicToSeed(mnemonic, password);
 		this.defineHDNode(bip32.fromSeed(seed, network));
 		return mnemonic; // userpw
 	}
@@ -103,8 +103,8 @@ export default class HDWallet {
 	/**
    * recover using mnemonic (recovery word list)
    */
-	async recover(mnemonic, network) {
-		network = this.validateNetwork(network);
+	async recover(mnemonic, password, network) {
+		network = this.validateNetwork(network, password);
 		const seed = await mnemonicToSeed(mnemonic);
 		this.defineHDNode(bip32.fromSeed(seed, network));
 	}

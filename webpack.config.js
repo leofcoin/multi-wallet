@@ -77,24 +77,5 @@ module.exports = [
       filename: 'browser.min.js',
       path: path.resolve(__dirname, 'dist'),
     }
-  },
-  {
-    entry: './src/index.js',
-    optimization: {
-      minimize: false
-    },
-    plugins: [
-      new webpack.IgnorePlugin({
-        resourceRegExp: /^\.\/wordlists\/(?!english)/
-      }) // bi39 wordlist (mnemonic) only english
-    ],
-    target: ['node'],
-    output: {
-      library: {
-        type: 'commonjs2'
-      },
-      filename: 'cjs.js',
-      path: path.resolve(__dirname, 'dist'),
-    },
   }
 ]

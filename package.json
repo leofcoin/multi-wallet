@@ -2,7 +2,7 @@
   "name": "@leofcoin/multi-wallet",
   "version": "2.1.1",
   "description": "<version><codec><wallet>",
-  "main": "dist/cjs.js",
+  "main": "dist/commonjs.js",
   "module": "src/index.js",
   "browser": "dist/browser.min.js",
   "repository": "https://github.com/leofcoin/multi-wallet",
@@ -10,8 +10,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "webpack",
-    "pack": "webpack",
+    "build": "rollup -c && webpack",
     "serve": "live-server --port=2020",
     "demo": "jsproject --serve ./ --port=2020 --open=demo",
     "test": "node test/index.js"

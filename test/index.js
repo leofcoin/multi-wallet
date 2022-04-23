@@ -1,4 +1,4 @@
-const MultiWallet = require('./../index')
+const MultiWallet = require('./../')
 const config = require('./config')
 const test = require('tape')
 const { encode, decode } = require('bs58');
