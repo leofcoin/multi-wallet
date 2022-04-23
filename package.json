@@ -13,7 +13,7 @@
     "build": "webpack",
     "pack": "webpack",
     "serve": "live-server --port=2020",
-    "demo": "live-server --port=2020 --open=demo",
+    "demo": "jsproject --serve ./ --port=2020 --open=demo",
     "test": "node test/index.js"
   },
   "keywords": [

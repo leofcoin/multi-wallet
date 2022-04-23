@@ -5,8 +5,8 @@
     <title></title>
   </head>
   <body>
-    <script src="../dist/browser.js"></script>
     <script type="module" async>
+    import MultiWallet from '../dist/browser.js'
     import html from './../node_modules/custom-html-tag/src/html.js';
     import renderer from './../node_modules/custom-renderer/src/render.js';
 
@@ -57,9 +57,9 @@
 
     let render = new Render();
 
-    let wallet = new MultiWallet.default('leofcoin:olivia')
+    let wallet = new MultiWallet('leofcoin:olivia')
     const mnemonic = await wallet.generate();
-    wallet = new MultiWallet.default('leofcoin:olivia')
+    wallet = new MultiWallet('leofcoin:olivia')
     await wallet.recover(mnemonic)
     const wif = wallet.wif;
     const multiWIF = wallet.multiWIF;
