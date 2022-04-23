@@ -94,7 +94,7 @@ export default class HDWallet {
 
 	async generate(network) {
 		network = this.validateNetwork(network);
-		const mnemonic = generateMnemonic();
+		const mnemonic = generateMnemonic(256);
 		const seed = await mnemonicToSeed(mnemonic);
 		this.defineHDNode(bip32.fromSeed(seed, network));
 		return mnemonic; // userpw
