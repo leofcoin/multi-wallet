@@ -28,6 +28,7 @@ const bitcoin = {
 	messagePrefix: '\x18Bitcoin Signed Message:\n',
 	bech32: 'bc',
 	pubKeyHash: 0x00,
+	multiCodec: 0x00,
 	scriptHash: 0x05,
 	wif: 0x80,
 	coin_type: 0,

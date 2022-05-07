@@ -1,11 +1,11 @@
-import { generateMnemonic, mnemonicToSeed } from 'bip39';
 import * as bip32 from 'bip32'
 import networks from './networks';
 import { fromNetworkString } from './network-utils.js';
 import bs58check from 'bs58check';
 import createKeccakHash from 'keccak';
-import { publicKeyConvert } from 'secp256k1'
 import ecc from 'tiny-secp256k1'
+import Mnemonic from '@leofcoin/mnemonic'
+import { createHash } from 'crypto'
 
 const { encode, decode } = bs58check;
 export default class HDWallet {
@@ -34,20 +34,48 @@ export default class HDWallet {
 		return this.ifNotLocked(() => this.publicKeyBuffer.toString('hex'))
 	}
 
+	get ethereumAddress() {
+		const buffer = ecc.pointFromScalar(this.hdnode.__D, false)
+		let hash = createKeccakHash('keccak256').update(buffer.slice(1)).digest()
+		return `0x${hash.slice(-20).toString('hex')}`
+	}
+
+	get bitcoinAddress() {
+		const chainCode = this.privateKeyBuffer
+
+		const node = bip32.fromPrivateKey(this.privateKeyBuffer, chainCode, networks['bitcoin'])
+		let buffer = createHash('sha256').update(node.publicKey).digest()
+		buffer = createHash('ripemd160').update(buffer).digest()
+		// buffer = Buffer.from(`0x00${buffer.toString('hex')}`, 'hex')
+		// buffer = createHash('sha256').update(buffer).digest()
+		// const mainHash = buffer
+		// buffer = createHash('sha256').update(buffer).digest()
+		// const checksum = buffer.toString('hex').substring(0, 8)
+		// return base58.encode(Buffer.concat([mainHash, Buffer.from(checksum, 'hex')]))
+		const payload = Buffer.allocUnsafe(21)
+	  payload.writeUInt8(networks['bitcoin'].pubKeyHash, 0)
+	  buffer.copy(payload, 1)
+
+  	return encode(payload)
+	}
+
+	get leofcoinAddress() {
+		return encode(this.neutered.publicKeyBuffer)
+	}
+
 	get address() {
-		// override testnet coin_type
-		let coin_type = this.hdnode.network.coin_type
+		return this.getAddressForCoin()
+	}
+
+	getAddressForCoin(coin_type) {
+		if (!coin_type) coin_type = this.hdnode.network.coin_type
 		if (coin_type === 1) {
 			if (this.networkName?.split(':')[0] === 'ethereum') coin_type = 60
 			if (this.networkName?.split(':')[0] === 'leofcoin') coin_type = 640
 		}
-		if (coin_type === 60 || coin_type === 640) {
-			let buffer = ecc.pointFromScalar(this.hdnode.__D, false)
-			buffer = Buffer.from(publicKeyConvert(buffer, false)).slice(1)
-			let hash = createKeccakHash('keccak256').update(buffer).digest()
-			return hash.slice(-20).toString('hex')
-		}
-		return encode(this.neutered.publicKeyBuffer)
+		if (coin_type === 0) return this.bitcoinAddress
+		if (coin_type === 60) return this.ethereumAddress
+		if (coin_type === 640) return this.leofcoinAddress
 	}
 
 	get accountAddress() {
@@ -94,10 +122,10 @@ export default class HDWallet {
 
 	async generate(password, network) {
 		network = this.validateNetwork(network);
-		const mnemonic = generateMnemonic(256);
-		const seed = await mnemonicToSeed(mnemonic, password);
+		const mnemonic = new Mnemonic().generate()
+		const seed = new Mnemonic().seedFromMnemonic(mnemonic, password);
 		this.defineHDNode(bip32.fromSeed(seed, network));
-		return mnemonic; // userpw
+		return mnemonic;
 	}
 
 	/**
@@ -105,7 +133,7 @@ export default class HDWallet {
    */
 	async recover(mnemonic, password, network) {
 		network = this.validateNetwork(network, password);
-		const seed = await mnemonicToSeed(mnemonic);
+		const seed = new Mnemonic().seedFromMnemonic(mnemonic, password);
 		this.defineHDNode(bip32.fromSeed(seed, network));
 	}
 

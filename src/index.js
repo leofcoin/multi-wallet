@@ -42,9 +42,7 @@ class HDAccount {
 
 export default class MultiWallet extends HDWallet {
 	constructor(network, hdnode) {
-		const networkName = network
 		super(network, hdnode);
-		if (typeof networkName === 'string') this.networkName = networkName
 		this.multiCodec = this.network.multiCodec;
 		this.version = 0x00
 	}
@@ -62,7 +60,7 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	get neutered() {
-		const neutered = this.ifNotLocked(() => new MultiWallet(this.network, this.hdnode.neutered()))
+		const neutered = this.ifNotLocked(() => new MultiWallet(this.networkName, this.hdnode.neutered()))
 		if (neutered) this._neutered = neutered;
 		return this._neutered
 	}
@@ -71,7 +69,7 @@ export default class MultiWallet extends HDWallet {
 		let buffer = decode(id)
 		const codec = varint.decode(buffer)
 		buffer = buffer.slice(varint.decode.bytes)
-		this.fromPublicKey(buffer, null, this.network)
+		this.fromPublicKey(buffer, null, this.networkName)
 	}
 
 	lock(key, multiWIF) {
@@ -102,7 +100,7 @@ export default class MultiWallet extends HDWallet {
 			else if (c.testnet && c.testnet.multiCodec === multiCodec) return c.testnet
 			else return p
 		}, networks['leofcoin'])
-		this.load(bs58, this.network)
+		this.load(bs58, this.networkName)
 	}
 
 	/**
@@ -145,7 +143,7 @@ export default class MultiWallet extends HDWallet {
 	 * @return { internal(addressIndex), external(addressIndex) }
 	 */
 	account(index) {
-		return new HDAccount(new MultiWallet(this.network, this.hdnode), index);
+		return new HDAccount(new MultiWallet(this.networkName, this.hdnode), index);
 	}
 
 	/**
@@ -154,10 +152,10 @@ export default class MultiWallet extends HDWallet {
 	 * see https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 	 */
 	derivePath(path) {
-		return new MultiWallet(this.network, this.hdnode.derivePath(path))
+		return new MultiWallet(this.networkName, this.hdnode.derivePath(path))
 	}
 
 	derive(index) {
-		return new MultiWallet(this.network, this.hdnode.derive(index));
+		return new MultiWallet(this.networkName, this.hdnode.derive(index));
 	}
 }

@@ -7,8 +7,6 @@ export default [
 			format: 'cjs',
 			sourcemap: false
 		},
-		experimentalCodeSplitting: true,
-		experimentalDynamicImport: true,
     plugins: [
       // uglify()
     ]
