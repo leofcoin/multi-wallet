@@ -2,11 +2,9 @@ import * as bs58Check from 'bs58check';
 import HDWallet from './hd-wallet';
 import MultiSignature from 'multi-signature';
 import varint from 'varint';
-import AES from 'crypto-js/aes.js';
-import sha512 from 'crypto-js/sha512.js';
-import ENC from 'crypto-js/enc-utf8.js';
 import networks from './networks.js'
 const { encode, decode } = bs58Check;
+import { encrypt, decrypt } from './cipher'
 
 const numberToHex = number => {
 	number = number.toString(16);
@@ -72,15 +70,16 @@ export default class MultiWallet extends HDWallet {
 		this.fromPublicKey(buffer, null, this.networkName)
 	}
 
-	lock(key, multiWIF) {
+	async lock(multiWIF) {
 		if (!multiWIF) multiWIF = this.multiWIF;
-		this.encrypted = AES.encrypt(multiWIF.toString('hex'), key).toString();
+		this.encrypted = await encrypt(multiWIF.toString('hex'));
 		this.locked = true;
+		return this.encrypted
 	}
 
-	unlock(key, encrypted) {
-		if (!encrypted) encrypted = this.encrypted;
-		this.import(AES.decrypt(encrypted, key).toString(ENC));
+	async unlock({key, iv, cipher}) {
+		const decrypted = await decrypt(cipher, key, iv)
+		this.import(decrypted);
 		this.locked = false;
 	}
 

@@ -5,17 +5,23 @@
     <title></title>
   </head>
   <body>
+
+    <!-- <input type="date"></input> -->
+    <!-- <button type="button" name="button">select date </button> -->
     <script type="module" async>
+
     import MultiWallet from '../dist/browser.js'
     import html from './../node_modules/custom-html-tag/src/html.js';
     import renderer from './../node_modules/custom-renderer/src/render.js';
-
+// document.querySelector('button').addEventListener('click', () => {
+//   document.querySelector('input').showPicker()
+// })
     class Render {
       constructor() {
         this.set = [];
       }
 
-      render({values, strings, keys}) {
+      async render({values, strings, keys}) {
         const dict = values[values.length - 1] || {};
         const changes = {};
         let template = null;
@@ -69,6 +75,8 @@
     const account = wallet.account(0);
     const internal = account.internal(0).address;
     const external = account.external(0).address;
+    const locked = await wallet.lock()
+    console.log(locked);
 
     const template = html`
     <h1>MultiWallet</h1>
@@ -91,8 +99,10 @@
     <span>${'internal'}</span>
     <h3>External</h3>
     <span>${'external'}</span>
+
+    <h2></h2>
     `;
-    document.body.innerHTML = render.render(template({ mnemonic, wif, multiWIF, privateKey, publicKey, address, account, internal, external })).template;
+    // document.body.innerHTML = render.render(template({ mnemonic, wif, multiWIF, privateKey, publicKey, address, account, internal, external })).template;
     </script>
   </body>
 </html>

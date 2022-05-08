@@ -38,7 +38,7 @@ for (const key of Object.keys(config)) {
     hdnode = new MultiWallet(key);
   	hdnode.load(bs58)
   	tape.equal(hdnode.save(), bs58, 'load from saved');
-    
+
     hdnode = new MultiWallet(key);
     await hdnode.recover(mnemonic);
     tape.equal(hdnode.account(0).external(0).address, address, 'has correct address');
@@ -67,11 +67,11 @@ for (const key of Object.keys(config)) {
     tape.notEqual(account.internal(0).publicKey, account.external(0).publicKey, 'create internal/external chains');
 
     hdnode = new MultiWallet(key);
-  	hdnode.lock('pasword', multiWIF)
+  	const locked = await hdnode.lock(multiWIF)
   	tape.ok(hdnode.encrypted && !hdnode.publicKey, 'lock')
 
   	hdnode = new MultiWallet(key);
-  	hdnode.unlock('pasword', encrypted)
+  	await hdnode.unlock(encrypted)
   	tape.equal(hdnode.multiWIF, multiWIF, 'unlock')
   })
 }

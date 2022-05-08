@@ -5,7 +5,8 @@ import bs58check from 'bs58check';
 import createKeccakHash from 'keccak';
 import ecc from 'tiny-secp256k1'
 import Mnemonic from '@leofcoin/mnemonic'
-import { createHash } from 'crypto'
+// import { createHash } from 'crypto'
+// import { createHash as _createHash } from './hash'
 
 const { encode, decode } = bs58check;
 export default class HDWallet {
@@ -40,24 +41,24 @@ export default class HDWallet {
 		return `0x${hash.slice(-20).toString('hex')}`
 	}
 
-	get bitcoinAddress() {
-		const chainCode = this.privateKeyBuffer
-
-		const node = bip32.fromPrivateKey(this.privateKeyBuffer, chainCode, networks['bitcoin'])
-		let buffer = createHash('sha256').update(node.publicKey).digest()
-		buffer = createHash('ripemd160').update(buffer).digest()
-		// buffer = Buffer.from(`0x00${buffer.toString('hex')}`, 'hex')
-		// buffer = createHash('sha256').update(buffer).digest()
-		// const mainHash = buffer
-		// buffer = createHash('sha256').update(buffer).digest()
-		// const checksum = buffer.toString('hex').substring(0, 8)
-		// return base58.encode(Buffer.concat([mainHash, Buffer.from(checksum, 'hex')]))
-		const payload = Buffer.allocUnsafe(21)
-	  payload.writeUInt8(networks['bitcoin'].pubKeyHash, 0)
-	  buffer.copy(payload, 1)
-
-  	return encode(payload)
-	}
+	// async bitcoinAddress() {
+	// 	const chainCode = this.privateKeyBuffer
+	//
+	// 	const node = bip32.fromPrivateKey(this.privateKeyBuffer, chainCode, networks['bitcoin'])
+	// 	let buffer = await _createHash(node.publicKey, 'SHA-256')
+	// 	buffer = createHash('ripemd160').update(buffer).digest()
+	// 	// buffer = Buffer.from(`0x00${buffer.toString('hex')}`, 'hex')
+	// 	// buffer = createHash('sha256').update(buffer).digest()
+	// 	// const mainHash = buffer
+	// 	// buffer = createHash('sha256').update(buffer).digest()
+	// 	// const checksum = buffer.toString('hex').substring(0, 8)
+	// 	// return base58.encode(Buffer.concat([mainHash, Buffer.from(checksum, 'hex')]))
+	// 	const payload = Buffer.allocUnsafe(21)
+	//   payload.writeUInt8(networks['bitcoin'].pubKeyHash, 0)
+	//   buffer.copy(payload, 1)
+	//
+  // 	return encode(payload)
+	// }
 
 	get leofcoinAddress() {
 		return encode(this.neutered.publicKeyBuffer)
@@ -73,7 +74,7 @@ export default class HDWallet {
 			if (this.networkName?.split(':')[0] === 'ethereum') coin_type = 60
 			if (this.networkName?.split(':')[0] === 'leofcoin') coin_type = 640
 		}
-		if (coin_type === 0) return this.bitcoinAddress
+		// if (coin_type === 0) return this.bitcoinAddress
 		if (coin_type === 60) return this.ethereumAddress
 		if (coin_type === 640) return this.leofcoinAddress
 	}
