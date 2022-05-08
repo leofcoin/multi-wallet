@@ -27,7 +27,7 @@
     "@leofcoin/mnemonic": "^1.0.0",
     "bip32": "^2.0.6",
     "keccak": "^3.0.1",
-    "multi-signature": "^1.1.0"
+    "multi-signature": "^1.1.1"
   },
   "devDependencies": {
     "crypto-browserify": "^3.12.0",
