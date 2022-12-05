@@ -1,14 +1,10 @@
 import * as bip32 from 'bip32'
-import networks from './networks';
 import { fromNetworkString } from './network-utils.js';
 import bs58check from 'bs58check';
-import createKeccakHash from 'keccak';
-import ecc from 'tiny-secp256k1'
 import Mnemonic from '@leofcoin/mnemonic'
-// import { createHash } from 'crypto'
-// import { createHash as _createHash } from './hash'
 
-const { encode, decode } = bs58check;
+import { publicKeyToEthereumAddress } from './utils.js';
+
 export default class HDWallet {
 
 	get chainCodeBuffer() {
@@ -35,52 +31,32 @@ export default class HDWallet {
 		return this.ifNotLocked(() => this.publicKeyBuffer.toString('hex'))
 	}
 
-	get ethereumAddress() {
-		const buffer = ecc.pointFromScalar(this.hdnode.__D, false)
-		let hash = createKeccakHash('keccak256').update(buffer.slice(1)).digest()
-		return `0x${hash.slice(-20).toString('hex')}`
+	async ethereumAddress() {
+		const address = await publicKeyToEthereumAddress(this.publicKeyBuffer)
+		return address
 	}
 
-	// async bitcoinAddress() {
-	// 	const chainCode = this.privateKeyBuffer
-	//
-	// 	const node = bip32.fromPrivateKey(this.privateKeyBuffer, chainCode, networks['bitcoin'])
-	// 	let buffer = await _createHash(node.publicKey, 'SHA-256')
-	// 	buffer = createHash('ripemd160').update(buffer).digest()
-	// 	// buffer = Buffer.from(`0x00${buffer.toString('hex')}`, 'hex')
-	// 	// buffer = createHash('sha256').update(buffer).digest()
-	// 	// const mainHash = buffer
-	// 	// buffer = createHash('sha256').update(buffer).digest()
-	// 	// const checksum = buffer.toString('hex').substring(0, 8)
-	// 	// return base58.encode(Buffer.concat([mainHash, Buffer.from(checksum, 'hex')]))
-	// 	const payload = Buffer.allocUnsafe(21)
-	//   payload.writeUInt8(networks['bitcoin'].pubKeyHash, 0)
-	//   buffer.copy(payload, 1)
-	//
-  // 	return encode(payload)
-	// }
-
 	get leofcoinAddress() {
-		return encode(this.neutered.publicKeyBuffer)
+		return bs58check.encode(this.neutered.publicKeyBuffer)
 	}
 
 	get address() {
 		return this.getAddressForCoin()
 	}
 
-	getAddressForCoin(coin_type) {
+	async getAddressForCoin(coin_type) {
 		if (!coin_type) coin_type = this.hdnode.network.coin_type
 		if (coin_type === 1) {
 			if (this.networkName?.split(':')[0] === 'ethereum') coin_type = 60
 			if (this.networkName?.split(':')[0] === 'leofcoin') coin_type = 640
 		}
 		// if (coin_type === 0) return this.bitcoinAddress
-		if (coin_type === 60) return this.ethereumAddress
+		if (coin_type === 60) return this.ethereumAddress()
 		if (coin_type === 640) return this.leofcoinAddress
 	}
 
 	get accountAddress() {
-		return this.ifNotLocked(() => encode(this.hdnode.publicKeyBuffer))
+		return this.ifNotLocked(() => bs58check.encode(this.hdnode.publicKeyBuffer))
 	}
 
 	get isTestnet() {
@@ -123,9 +99,9 @@ export default class HDWallet {
 
 	async generate(password, network) {
 		network = this.validateNetwork(network);
-		const mnemonic = new Mnemonic().generate()
-		const seed = new Mnemonic().seedFromMnemonic(mnemonic, password);
-		this.defineHDNode(bip32.fromSeed(seed, network));
+		const mnemonic = await new Mnemonic().generate(512)
+		const seed = await new Mnemonic().seedFromMnemonic(mnemonic, password, 512);
+		this.defineHDNode(bip32.fromSeed(Buffer.from(seed, 'arrayBuffer'), network));
 		return mnemonic;
 	}
 
@@ -134,8 +110,8 @@ export default class HDWallet {
    */
 	async recover(mnemonic, password, network) {
 		network = this.validateNetwork(network, password);
-		const seed = new Mnemonic().seedFromMnemonic(mnemonic, password);
-		this.defineHDNode(bip32.fromSeed(seed, network));
+		const seed = await new Mnemonic().seedFromMnemonic(mnemonic, password, 512);
+		this.defineHDNode(bip32.fromSeed(Buffer.from(seed, 'arrayBuffer'), network));
 	}
 
 	load(base58, network) {
@@ -152,7 +128,7 @@ export default class HDWallet {
 		// if (network.coin_type === 60) {
 		// 	address = Buffer.from(address, 'hex')
 		// } else {
-			address = decode(address);
+			address = bs58check.decode(address);
 		// }
 
 		if (!chainCode || chainCode && !Buffer.isBuffer(chainCode)) chainCode = address.slice(1)

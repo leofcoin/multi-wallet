@@ -1,7 +1,8 @@
-const MultiWallet = require('./../')
-const config = require('./config')
-const test = require('tape')
-const { encode, decode } = require('bs58');
+import MultiWallet from '../src/index.js'
+import config from './config.js'
+import test from 'tape'
+import base58 from '@vandeurenglenn/base58'
+const { encode, decode } = base58
 
 test('basic wallet functionality', async tape => {
   tape.plan(1)
@@ -41,16 +42,17 @@ for (const key of Object.keys(config)) {
 
     hdnode = new MultiWallet(key);
     await hdnode.recover(mnemonic);
-    tape.equal(hdnode.account(0).external(0).address, address, 'has correct address');
+    tape.equal(await hdnode.account(0).external(0).address, address, 'has correct address');
 
     hdnode = new MultiWallet(key);
   	hdnode.load(bs58);
   	let external = hdnode.account(0).external(0)
-  	tape.equal(signature, encode(external.sign(hash)), 'sign');
+  	tape.equal(signature, encode(external.sign(hash)), 'alice can sign');
+
     hdnode = new MultiWallet(key);
     hdnode.load(bs58);
     const neutered = hdnode.account(0).external(0).neutered;
-    tape.equal(neutered.verify(decode(signature), hash, publicKey), true, 'verify');
+    tape.equal(neutered.verify(decode(signature), hash, publicKey), true, 'bob can verify');
 
     // doesn't work with ethereum
     // hdnode = new MultiWallet(key);
@@ -69,7 +71,6 @@ for (const key of Object.keys(config)) {
     hdnode = new MultiWallet(key);
   	const locked = await hdnode.lock(multiWIF)
   	tape.ok(hdnode.encrypted && !hdnode.publicKey, 'lock')
-
   	hdnode = new MultiWallet(key);
   	await hdnode.unlock(encrypted)
   	tape.equal(hdnode.multiWIF, multiWIF, 'unlock')

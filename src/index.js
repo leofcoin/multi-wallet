@@ -1,10 +1,9 @@
-import * as bs58Check from 'bs58check';
-import HDWallet from './hd-wallet';
+import bs58Check from 'bs58check';
+import HDWallet from './hd-wallet.js';
 import MultiSignature from 'multi-signature';
 import varint from 'varint';
 import networks from './networks.js'
-const { encode, decode } = bs58Check;
-import { encrypt, decrypt } from './cipher'
+import { encrypt, decrypt } from '@leofcoin/utils'
 
 const numberToHex = number => {
 	number = number.toString(16);
@@ -50,7 +49,7 @@ export default class MultiWallet extends HDWallet {
 			Buffer.from(varint.encode(this.multiCodec)),
 			Buffer.from(this.account(0).node.neutered.publicKey, 'hex')
 		]);
-		return encode(buffer)
+		return bs58Check.encode(buffer)
 	}
 
 	get multiWIF() {
@@ -64,7 +63,7 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	fromId(id) {
-		let buffer = decode(id)
+		let buffer = bs58Check.decode(id)
 		const codec = varint.decode(buffer)
 		buffer = buffer.slice(varint.decode.bytes)
 		this.fromPublicKey(buffer, null, this.networkName)
@@ -109,18 +108,18 @@ export default class MultiWallet extends HDWallet {
 		const buffer = Buffer.concat([
 			Buffer.from(varint.encode(this.version)),
 			Buffer.from(varint.encode(this.multiCodec)),
-			decode(this.save())
+			bs58Check.decode(this.save())
 		]);
-		return encode(buffer);
+		return bs58Check.encode(buffer);
 	}
 
 	decode(bs58) {
-		let buffer = decode(bs58);
+		let buffer = bs58Check.decode(bs58);
 		const version = varint.decode(buffer);
 		buffer = buffer.slice(varint.decode.bytes)
 		const multiCodec = varint.decode(buffer);
 		buffer = buffer.slice(varint.decode.bytes)
-		bs58 = encode(buffer)
+		bs58 = bs58Check.encode(buffer)
 		if (version !== this.version) throw TypeError('Invalid version');
 		if (this.multiCodec !== multiCodec) throw TypeError('Invalid multiCodec');
 		return { version, multiCodec, bs58 };

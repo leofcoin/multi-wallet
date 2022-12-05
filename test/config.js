@@ -1,9 +1,9 @@
 const defaultConfig = {
-  mnemonic: 'slice purity either try maze abstract local force dog pet mom pizza alley chapter horse evidence sense before alert approve announce milk ticket clean',
+  mnemonic: 'toss raccoon life category million canvas clip insect such announce control zero dignity chronic illegal fit around erode toy great forward design album attract inner cement bar purpose winter host load middle mad candy fury rail become spirit weather curious wet bring slide action differ tube album',
   hash: Buffer.alloc(32, 1)
 }
 
-module.exports = {
+export default {
   // bitcoin: {
   //   ...defaultConfig,
   // 	bs58: 'xprv9s21ZrQH143K38o2RFVY3j9rFY1kJDLaAuQBqRUTz8R3XE8eFL6ahdQLf4BSRnyHaoa2MSn99vzzHRpUN6ruF2ezM12moFvtfUAhaK5LKL5',
@@ -15,41 +15,41 @@ module.exports = {
   // },
   leofcoin: {
     ...defaultConfig,
-  	bs58: '5BycwBHaGerBsZZjFYDnSovETU2U9UZE9RtehG6ifPrW4HVLybQEqE1nhZ14FXU4cfopgAC6auVCq46p71ngmgUjfsyCB9iugRh4V5dB9otdT5mC',
-  	multiWIF: '1EyinruShNm71XE1Z8NF6nNv2HBftuUJHbHtxoawzzRHsgkt6TtP8uN4i71BPHuLMZrE58Ppaj63jXPp3UGav2tgMK6uPUu468tNMzkW19ZwWndJfRoS',
-  	publicKey: '030ae5bc1afa5e2d94d5e7cb39157648cf57c38f8b26378b81162ae07197b78764',
-  	signature: '12KMWetfqWcumr5Ly9EhTgpyiZsbYZAhG5wTDUJpyJuhccbSD6NPJRY3bQfk1BuRYeZTPBcXrxToamGk8J2J5R11kxut',
-  	address: '6v2tYh2TismPrQbvaig2zbfDuNQgEP9KpcbsMhCrs3z7VPTBcK',
+  	bs58: '5BycwBHaGerBsZZjFYTsMxEH7W8mcdPrVk34FRCbN5TkmnVmUqkRBs2YC3m3urJ7Pk81Em4qk2XKAo1QF4itSWjXs7G1DfrJJWA29vf9De5uZM1w',
+  	multiWIF: '1EyinruShNm71XE1Z8NF6nczwRViYwabkk8XK7jMZ9XAaNN8oxtoe9iF4k1vsnfL1tgGrCi19KxnteRvPDBB45pt29MhaiBs8f1kz5DTfzbuacvpKuas',
+  	publicKey: '024e439b2a1c1bac6cb0aab661762eadf5fa006405233a1c80650cf077056c72da',
+  	signature: '12KMWrmjBDe21fsTDpQxn8WLqeZdxVXrdz23TYRANyYTjQUPfvBXgc5ykB7abz7TSC7aeyFtWyBxUvSAWGndQ5Fm5ntE',
+  	address: '5UxWE1jKYxSNF67wbMCGhGmGVuAQpzcdYKibSjkwZy8RdfGriT',
   	encrypted: {
-      key: '69a62729b5175e9302f62ea3cef5f778877ae5d610af20f9ed9e4811dcd27229',
-      iv: '80d105de8e4887b45d1ff745a8bfc2d7',
-      cipher: '016291e36c040a8bc749aed10babc1c112ccf7c58673a5c12b79afe8fa585b50a98db2eb0e1d9a374cd872762898c133e293de8e1cffdbad9d1b64688eff511a3399fe48d22e21b31527bc20fd324f1da6285c74497aace99cc5afdb86bac6ad308f31c4f1eb2219d4922a15377659b99649463260f6d8541d86774290460f11'
+      key: 'a2fec968ca0543d125835e07f5a71a7fd046dbdc0b27e8137430fdecdae4fd74',
+      iv: '2de96aaa748eadfd56a514fb004f669b',
+      cipher: '42169c866bb9577b86f8c33cae402573ae2ec880a6889d85422a050ed0800a753bb286b38cdc52b2003745b8fb4c44775e9b41ce59cff6104b7d072a2b90f6bd4749bd72f1240485e56ab8b60e079fd227153f51b058c185d67fb854bf75632fca7debf6d1d6b65160d736535e15983addad214d6df51d01a854c4932b4e1b6f'
     }
   },
   'leofcoin:olivia': {
     ...defaultConfig,
-  	bs58: '5BycwBHaGerBsZZjFYDnSovETU2U9UZE9RtehG6ifPrW4HVLybQEqE1nhZ14FXU4cfopgAC6auVCq46p71ngmgUjfsyCB9iugRh4V5dB9otdT5mC',
-  	multiWIF: '1EyinruShNm71XE1Z8NF6nNv2HBftuUJHbHtxoawzzRHsgkt6TtP8uN4i71BPHuLMZrE58Ppaj63jXPp3UGav2tgMK6uPUu468tNMzkW19ZwWndJfRoS',
-  	publicKey: '030ae5bc1afa5e2d94d5e7cb39157648cf57c38f8b26378b81162ae07197b78764',
-  	signature: '12KMWetfqWcumr5Ly9EhTgpyiZsbYZAhG5wTDUJpyJuhccbSD6NPJRY3bQfk1BuRYeZTPBcXrxToamGk8J2J5R11kxut',
-  	address: '6v2tYh2TismPrQbvaig2zbfDuNQgEP9KpcbsMhCrs3z7VPTBcK',
+  	bs58: '5BycwBHaGerBsZZjFYTsMxEH7W8mcdPrVk34FRCbN5TkmnVmUqkRBs2YC3m3urJ7Pk81Em4qk2XKAo1QF4itSWjXs7G1DfrJJWA29vf9De5uZM1w',
+  	multiWIF: '1EyinruShNm71XE1Z8NF6nczwRViYwabkk8XK7jMZ9XAaNN8oxtoe9iF4k1vsnfL1tgGrCi19KxnteRvPDBB45pt29MhaiBs8f1kz5DTfzbuacvpKuas',
+  	publicKey: '024e439b2a1c1bac6cb0aab661762eadf5fa006405233a1c80650cf077056c72da',
+  	signature: '12KMWrmjBDe21fsTDpQxn8WLqeZdxVXrdz23TYRANyYTjQUPfvBXgc5ykB7abz7TSC7aeyFtWyBxUvSAWGndQ5Fm5ntE',
+  	address: '5UxWE1jKYxSNF67wbMCGhGmGVuAQpzcdYKibSjkwZy8RdfGriT',
   	encrypted: {
-      key: '2c6a3ed6aeac09fda26fc41b48d46f92c06bc12ec5fc99d90c4c8f41fe410f5c',
-      iv: 'e91411a87c8465e4153c1dce918c8d00',
-      cipher: 'da409bb1fe5f666f4aae92170ce097c0e616e0ba779e1c64f651abd50e24f15f3d60627cea441e443c30d2edfa1a2881865b9d28a63774637b88e97b770d3d184abd38afe4f38a4fbe731a64c00425678b9b04f5f091fdfa038fd016a55014ddbaf86399572741ae224e645689d27ec5a1f12102e1aa4e6cc3594b927e404a93'
+      key: '521461d00b9f2c053d3078c7dbdf0a1b8c565c9046df50318759c5a77a14c2ab',
+      iv: '509c21f50b8e6f41f3facc684f43e026',
+      cipher: '86113b311650b992a0bacce303f451a5b1088e6bdac11a9012118961cb538db16f0f952109420e526aace36a09d8756ed6d185474e8048cdc9e3d4fb6441bb7c1cf5e1e5ccc6d6c08135329246e40dc02c3749bcdb69aed3e3bc2de85545545415b0d185708e5360db48c610b21897e0116cb9af09b5b06b5b4363e841a0ab72'
     }
   },
   ethereum: {
     ...defaultConfig,
-    bs58: 'xprv9s21ZrQH143K38o2RFVY3j9rFY1kJDLaAuQBqRUTz8R3XE8eFL6ahdQLf4BSRnyHaoa2MSn99vzzHRpUN6ruF2ezM12moFvtfUAhaK5LKL5',
-    multiWIF: '1F3rcHQfLnBJNa1nxNSAtEoqH6BQET697dyTuPvoJjDJemChhv3NExGhTRF5cnZtG8ejq72Z2hMgQg3ujjsvz9VByrW7x8oprLGUgJgQX7VXJeHdJY48',
-    publicKey: '03388ac1b640ffd5a9af92ef46768e9db2462d80063f5c7adfcc0836e9d746f11a',
-    signature: '12Kk6QmHYXudvpHnG6fBr6MbTiGP9L1fEvAo8W6GqASQVAJ8jWjt9zKPAPL74omNy5o8Woz7gCRjYQKSXwkDkXbW3s5R',
-    address: '0x073f3fe337d9c82ee33b1ee44ac276012ac25373',
+    bs58: 'xprv9s21ZrQH143K3NswZZYC5qTKQNe6cMk8L1GtX2jBV8qYmaJztLr5CPPzytEDW79rBgKBUUtUtqb8LN29CMf6UKU2s8RPsitZWW8mQYkxp8Q',
+    multiWIF: '1F3rcHQfLnBJNa1nxNSAtF3vCEVStVCSanp6Fi5CrtKBMSoxRR3nkCcsp4Fq7HKsvTUncBLjbJERZo625UnX8CRPegkv9N6dtrPsJP9NBxXVNUYmaML7',
+    publicKey: '03acd9b3ba9cc617063fb2ed4a89ffbf1c65206667fbff046f5ea9a2668111c69d',
+    signature: '12Kk3qFCBGDmqDxWkNyZMb1Y8cDXazospkncBQeRfJ4gs9XZjbW5mpNtfEi2ByJYcPhnGat7ppV23EZ8SeJ6Do2qrqCC',
+    address: '0x83c6ef5365a0e4c89a8e171d63b4ce2a78c02afd',
     encrypted: {
-      key: '431f6b685fc780227421d94aa97b845224fa798173ee00fd090917c737c89982',
-      iv: '11c94b9e72dee1e6daa142acca84d375',
-      cipher: '7d3234095c5a9047d9de6261c829918c8c68fc8b32f32879a0132696a5e1a9e5081afe034c52e7e49cbd6a0e7bbcf9e12d0bd061a469b24dd335db79a4328d09d07b1b0ce7ba67d45a07a4c5aa8104cbdb2083edc57cadfbd92372dae0600b4073d2f253c251fccf428b9bfec4ac9ef12fe080257bb48d019fbe51abc0ccd094'
+      key: '6421b11aa3ddd6afa7a302d2979b4d640af3a1e5e2a8c765d9a769d2a3a490a7',
+      iv: '7fb107116e92172bc299b4552bd9d019',
+      cipher: 'e73d4eb5a8cdad74f89a22af6c11a8de57b7e46ab99ad48327b37a5e0aef4ccfb02e786cdeb8d378ae6242a6291840ff05162d3c104d8ad613fb7e754358f95be1b1f99fbdee8e257c9ff1d38911afd7194f172b79c86d6089d42f789d227995479383a2233c99fbb7c6b27651be287e392c7b77ed712fa57e4b995fc01787c4'
     }
   }
   // 'ethereum:kovan': {

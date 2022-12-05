@@ -2,18 +2,19 @@
   "name": "@leofcoin/multi-wallet",
   "version": "2.1.7",
   "description": "<version><codec><wallet>",
-  "main": "dist/commonjs.js",
-  "module": "src/index.js",
-  "browser": "dist/browser.js",
+  "main": "dist/index.js",
+  "type": "module",
   "repository": "https://github.com/leofcoin/multi-wallet",
   "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
   "license": "MIT",
   "private": false,
+  "engines": {
+    "node": ">=19.0.0"
+  },
   "scripts": {
-    "build": "rollup -c && webpack",
-    "serve": "live-server --port=2020",
+    "set-flags": "set NODE_OPTIONS=--openssl-legacy-provide",
     "demo": "jsproject --serve ./ --port=2020 --open=demo",
-    "test": "node test/index.js"
+    "test": "npm run set-flags && node test/index.js"
   },
   "keywords": [
     "wallet",
@@ -26,17 +27,15 @@
   "dependencies": {
     "@leofcoin/mnemonic": "^1.0.0",
     "bip32": "^2.0.6",
+    "hash-wasm": "^4.9.0",
     "keccak": "^3.0.1",
-    "multi-signature": "^1.1.1"
+    "multi-signature": "^1.2.0",
+    "randombytes": "^2.1.0"
   },
   "devDependencies": {
-    "crypto-browserify": "^3.12.0",
-    "custom-html-tag": "^1.0.0",
-    "custom-renderer": "^1.1.0",
-    "rollup-plugin-modify": "^3.0.0",
-    "stream-browserify": "^3.0.0",
-    "tape": "^4.13.3",
-    "webpack": "^5.72.0",
-    "webpack-cli": "^4.9.2"
+    "@types/randombytes": "^2.0.0",
+    "@types/varint": "^6.0.1",
+    "@vandeurenglenn/base58": "^1.1.1",
+    "tape": "^4.13.3"
   }
 }
