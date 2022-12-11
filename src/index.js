@@ -3,7 +3,7 @@ import HDWallet from './hd-wallet.js';
 import MultiSignature from 'multi-signature';
 import varint from 'varint';
 import networks from './networks.js'
-import { encrypt, decrypt } from '@leofcoin/utils'
+import { encrypt, decrypt } from '@leofcoin/crypto'
 
 const numberToHex = number => {
 	number = number.toString(16);
