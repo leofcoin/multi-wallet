@@ -1,6 +1,6 @@
 {
   "name": "@leofcoin/multi-wallet",
-  "version": "2.1.11",
+  "version": "2.1.12",
   "description": "<version><codec><wallet>",
   "main": "src/index.js",
   "type": "module",
