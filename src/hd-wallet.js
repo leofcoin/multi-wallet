@@ -1,10 +1,12 @@
-import * as bip32 from 'bip32'
+import {BIP32Factory} from 'bip32';
+import * as ecc from 'tiny-secp256k1';
 import { fromNetworkString } from './network-utils.js';
 import bs58check from 'bs58check';
 import Mnemonic from '@leofcoin/mnemonic'
 
 import { publicKeyToEthereumAddress } from './utils.js';
 
+const bip32 = BIP32Factory(ecc)
 export default class HDWallet {
 
 	get chainCodeBuffer() {

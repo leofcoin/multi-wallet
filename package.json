@@ -12,9 +12,8 @@
     "node": ">=19.0.0"
   },
   "scripts": {
-    "set-flags": "set NODE_OPTIONS=--openssl-legacy-provider",
     "demo": "jsproject --serve ./ --port=2020 --open=demo",
-    "test": "npm run set-flags && node test/index.js"
+    "test": "node test/index.js"
   },
   "keywords": [
     "wallet",
@@ -26,10 +25,11 @@
   ],
   "dependencies": {
     "@leofcoin/crypto": "^0.1.0",
-    "bip32": "^2.0.6",
+    "bip32": "^3.1.0",
     "hash-wasm": "^4.9.0",
     "keccak": "^3.0.1",
-    "multi-signature": "^1.2.0"
+    "multi-signature": "^1.2.0",
+    "tiny-secp256k1": "^2.2.1"
   },
   "devDependencies": {
     "@leofcoin/mnemonic": "^1.0.1",
