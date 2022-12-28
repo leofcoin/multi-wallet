@@ -24,7 +24,7 @@
     "cryptocurrency"
   ],
   "dependencies": {
-    "@leofcoin/crypto": "^0.1.0",
+    "@leofcoin/crypto": "^0.2.0",
     "bip32": "^3.1.0",
     "hash-wasm": "^4.9.0",
     "keccak": "^3.0.1",
