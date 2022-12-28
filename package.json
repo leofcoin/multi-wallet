@@ -32,7 +32,7 @@
     "tiny-secp256k1": "^2.2.1"
   },
   "devDependencies": {
-    "@leofcoin/mnemonic": "^1.0.1",
+    "@leofcoin/mnemonic": "^1.0.7",
     "@types/randombytes": "^2.0.0",
     "@types/varint": "^6.0.1",
     "@vandeurenglenn/base58": "^1.1.1",
