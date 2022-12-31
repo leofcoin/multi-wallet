@@ -1,12 +1,12 @@
 import {BIP32Factory} from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 import { fromNetworkString } from './network-utils.js';
-import bs58check from 'bs58check';
+import bs58check from '@vandeurenglenn/base58check';
 import Mnemonic from '@leofcoin/mnemonic'
 
 import { publicKeyToEthereumAddress } from './utils.js';
 
-const bip32 = BIP32Factory(ecc)
+const bip32 = await BIP32Factory(ecc)
 export default class HDWallet {
 
 	get chainCodeBuffer() {
@@ -58,7 +58,7 @@ export default class HDWallet {
 	}
 
 	get accountAddress() {
-		return this.ifNotLocked(() => bs58check.encode(this.hdnode.publicKeyBuffer))
+		return this.ifNotLocked(async () => bs58check.encode(this.hdnode.publicKeyBuffer))
 	}
 
 	get isTestnet() {
@@ -113,24 +113,24 @@ export default class HDWallet {
 	async recover(mnemonic, password, network) {
 		network = this.validateNetwork(network, password);
 		const seed = await new Mnemonic().seedFromMnemonic(mnemonic, password, 512);
-		this.defineHDNode(bip32.fromSeed(Buffer.from(seed, 'arrayBuffer'), network));
+		this.defineHDNode(await bip32.fromSeed(Buffer.from(seed, 'arrayBuffer'), network));
 	}
 
-	load(base58, network) {
+	async load(base58, network) {
 		network = this.validateNetwork(network);
-		this.defineHDNode(bip32.fromBase58(base58, network));
+		this.defineHDNode(await bip32.fromBase58(base58, network));
 	}
 
 	save() {
 		return this.hdnode.toBase58();
 	}
 
-	fromAddress(address, chainCode, network) {
+	async fromAddress(address, chainCode, network) {
 		network = this.validateNetwork(network);
 		// if (network.coin_type === 60) {
 		// 	address = Buffer.from(address, 'hex')
 		// } else {
-			address = bs58check.decode(address);
+			address = await bs58check.decode(address);
 		// }
 
 		if (!chainCode || chainCode && !Buffer.isBuffer(chainCode)) chainCode = address.slice(1)

@@ -1,9 +1,11 @@
-import bs58Check from 'bs58check';
+import bs58Check from '@vandeurenglenn/base58check';
 import HDWallet from './hd-wallet.js';
 import MultiSignature from 'multi-signature';
 import varint from 'varint';
 import networks from './networks.js'
 import { encrypt, decrypt } from '@leofcoin/crypto'
+import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat'
+import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat'
 
 const numberToHex = number => {
 	number = number.toString(16);
@@ -45,15 +47,14 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	get id() {
-		const buffer = Buffer.concat([
-			Buffer.from(varint.encode(this.multiCodec)),
-			Buffer.from(this.account(0).node.neutered.publicKey, 'hex')
-		]);
-		return bs58Check.encode(buffer)
+		return bs58Check.encode(typedArraySmartConcat([
+			new TextEncoder().encode(this.multiCodec),
+			new Uint8Array(this.account(0).node.neutered.publicKey)
+		]), this.version)
 	}
 
 	get multiWIF() {
-		return this.ifNotLocked(() => this.encode())
+		return this.ifNotLocked(async () => this.encode())
 	}
 
 	get neutered() {
@@ -62,8 +63,8 @@ export default class MultiWallet extends HDWallet {
 		return this._neutered
 	}
 
-	fromId(id) {
-		let buffer = bs58Check.decode(id)
+	async fromId(id) {
+		let buffer = (await bs58Check.decode(id)).data
 		const codec = varint.decode(buffer)
 		buffer = buffer.slice(varint.decode.bytes)
 		this.fromPublicKey(buffer, null, this.networkName)
@@ -77,8 +78,8 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	async unlock({key, iv, cipher}) {
-		const decrypted = await decrypt(cipher, key, iv)
-		this.import(decrypted);
+		const decrypted = await decrypt({cipher, key, iv})
+		await this.import(decrypted);
 		this.locked = false;
 	}
 
@@ -91,35 +92,35 @@ export default class MultiWallet extends HDWallet {
 	 *
 	 * @param {multiWIF} multiWIF - note a multiWIF is not the same as a wif
 	 */
-	import(multiWIF) {
-		const { bs58, version, multiCodec } = this.decode(multiWIF)
+	async import(multiWIF) {
+		const { bs58, version, multiCodec } = await this.decode(multiWIF)
 		this.network = Object.values(networks).reduce((p, c) => {
 			if (c.multiCodec===multiCodec) return c
 			else if (c.testnet && c.testnet.multiCodec === multiCodec) return c.testnet
 			else return p
 		}, networks['leofcoin'])
-		this.load(bs58, this.networkName)
+		await this.load(bs58, this.networkName)
 	}
 
 	/**
 	 * @return base58Check encoded string
 	 */
-	encode() {
-		const buffer = Buffer.concat([
-			Buffer.from(varint.encode(this.version)),
-			Buffer.from(varint.encode(this.multiCodec)),
-			bs58Check.decode(this.save())
-		]);
-		return bs58Check.encode(buffer);
+	async encode() {
+		const {data, prefix} = await bs58Check.decode(await this.save())
+		return bs58Check.encode(typedArraySmartConcat([
+			new TextEncoder().encode(this.version),
+			new TextEncoder().encode(this.multiCodec),
+			prefix,
+			data,
+		]));
 	}
 
-	decode(bs58) {
-		let buffer = bs58Check.decode(bs58);
-		const version = varint.decode(buffer);
-		buffer = buffer.slice(varint.decode.bytes)
-		const multiCodec = varint.decode(buffer);
-		buffer = buffer.slice(varint.decode.bytes)
-		bs58 = bs58Check.encode(buffer)
+	async decode(bs58) {
+		let [version, multiCodec, prefix, data] = typedArraySmartDeconcat((await bs58Check.decode(bs58)).data)
+		version = Number(new TextDecoder().decode(version))
+		multiCodec = Number(new TextDecoder().decode(multiCodec))
+		
+		bs58 = await bs58Check.encode(data, prefix)
 		if (version !== this.version) throw TypeError('Invalid version');
 		if (this.multiCodec !== multiCodec) throw TypeError('Invalid multiCodec');
 		return { version, multiCodec, bs58 };

@@ -25,6 +25,9 @@
   ],
   "dependencies": {
     "@leofcoin/crypto": "^0.2.0",
+    "@vandeurenglenn/base58check": "^1.1.0",
+    "@vandeurenglenn/typed-array-smart-concat": "^1.0.1",
+    "@vandeurenglenn/typed-array-smart-deconcat": "^1.0.0",
     "bip32": "^3.1.0",
     "hash-wasm": "^4.9.0",
     "keccak": "^3.0.1",
