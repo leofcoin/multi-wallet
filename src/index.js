@@ -48,9 +48,10 @@ export default class MultiWallet extends HDWallet {
 
 	get id() {
 		return bs58Check.encode(typedArraySmartConcat([
+			new TextEncoder().encode(this.version),
 			new TextEncoder().encode(this.multiCodec),
-			new Uint8Array(this.account(0).node.neutered.publicKey)
-		]), this.version)
+			this.account(0).node.neutered.publicKey
+		]))
 	}
 
 	get multiWIF() {
