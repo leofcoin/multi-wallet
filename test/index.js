@@ -1,4 +1,4 @@
-import MultiWallet from '../src/index.js'
+import MultiWallet from '../exports/index.js'
 import config from './config.js'
 import test from 'tape'
 import base58 from '@vandeurenglenn/base58'
@@ -19,7 +19,7 @@ test('basic wallet functionality', async tape => {
 })
 
 for (const key of Object.keys(config)) {
-  const { mnemonic, bs58, multiWIF, hash, publicKey, signature, address, encrypted } = config[key]
+  const { mnemonic, bs58, multiWIF, hash, publicKey, signature, address, encrypted, id } = config[key]
 
   test(key, async tape => {
     tape.plan(12)
@@ -42,35 +42,36 @@ for (const key of Object.keys(config)) {
 
     hdnode = new MultiWallet(key);
     await hdnode.recover(mnemonic);
-    tape.equal(await hdnode.account(0).external(0).address, address, 'has correct address');
+    let external = await hdnode.account(0).external(0)
+    tape.equal(await external.address, address, 'has correct address');
 
     hdnode = new MultiWallet(key);
   	await hdnode.load(bs58);
-  	let external = hdnode.account(0).external(0)
+  	external = await hdnode.account(0).external(0)
   	tape.equal(signature, encode(external.sign(hash)), 'alice can sign')
     
     hdnode = new MultiWallet(key);
     await hdnode.load(bs58);
-    const neutered = hdnode.account(0).external(0).neutered;
-    tape.equal(neutered.verify(decode(signature), hash, publicKey), true, 'bob can verify');
+    external = (await hdnode.account(0).external(0))
+    tape.equal(external.neutered.verify(decode(signature), hash, publicKey), true, 'bob can verify');
 
   	hdnode = new MultiWallet(key);
-  	hdnode.fromPublicKey(publicKey, null, key);
+  	await hdnode.fromPublicKey(publicKey, null, key);
   	tape.equal(hdnode.verify(decode(signature), hash), true, 'bob can verify alice\'s signature using Alice\'s publicKey');
 
     hdnode = new MultiWallet(key);
     await hdnode.load(bs58);
     let account = hdnode.account(0);
-    tape.notEqual(account.internal(0).publicKey, account.external(0).publicKey, 'create internal/external chains');
+    tape.notEqual(await (account.internal(0)).publicKey, (await account.external(0)).publicKey, 'create internal/external chains');
 
     hdnode = new MultiWallet(key);
   	const locked = await hdnode.lock(multiWIF)
-  	tape.ok(hdnode.encrypted && !hdnode.publicKey, 'lock')
+  	tape.ok(locked && !hdnode.privateKey, 'lock')
     
   	hdnode = new MultiWallet(key);
   	await hdnode.unlock(encrypted)
   	tape.equal(await hdnode.multiWIF, multiWIF, 'unlock')
-console.log(await hdnode.id);
-    tape.ok(await hdnode.id, 'id')
+
+    tape.equal(await hdnode.id, id, 'id')
   })
 }

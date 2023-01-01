@@ -4,9 +4,8 @@ import { createKeccak } from 'hash-wasm'
 const { publicKeyConvert } = secp256k1
 
 export const publicKeyToEthereumAddress = async (publicKeyBuffer) => {
-  let uncompressed = publicKeyConvert(publicKeyBuffer, false)
   const hasher = await createKeccak(256)
-  hasher.update(uncompressed)
+  hasher.update(publicKeyBuffer)
 
   const hash = hasher.digest()
   return `0x${hash.slice(-40).toString('hex')}`

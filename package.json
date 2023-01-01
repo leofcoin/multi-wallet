@@ -2,8 +2,10 @@
   "name": "@leofcoin/multi-wallet",
   "version": "2.1.17",
   "description": "<version><codec><wallet>",
-  "main": "src/index.js",
   "type": "module",
+  "exports": {
+    ".": "./exports/index.js"
+  },
   "repository": "https://github.com/leofcoin/multi-wallet",
   "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
   "license": "MIT",
@@ -12,6 +14,8 @@
     "node": ">=19.0.0"
   },
   "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
     "demo": "jsproject --serve ./ --port=2020 --open=demo",
     "test": "node test/index.js"
   },
@@ -25,20 +29,19 @@
   ],
   "dependencies": {
     "@leofcoin/crypto": "^0.2.0",
+    "@leofcoin/wif": "^1.0.0",
     "@vandeurenglenn/base58check": "^1.1.0",
     "@vandeurenglenn/typed-array-smart-concat": "^1.0.1",
     "@vandeurenglenn/typed-array-smart-deconcat": "^1.0.0",
-    "bip32": "^3.1.0",
     "hash-wasm": "^4.9.0",
-    "keccak": "^3.0.1",
     "multi-signature": "^1.2.0",
-    "tiny-secp256k1": "^2.2.1"
+    "@leofcoin/mnemonic": "^1.0.7"
   },
   "devDependencies": {
-    "@leofcoin/mnemonic": "^1.0.7",
-    "@types/randombytes": "^2.0.0",
-    "@types/varint": "^6.0.1",
+    "@rollup/plugin-typescript": "^10.0.1",
     "@vandeurenglenn/base58": "^1.1.1",
-    "tape": "^4.13.3"
+    "rollup": "^3.9.0",
+    "tape": "^4.13.3",
+    "tslib": "^2.4.1"
   }
 }
