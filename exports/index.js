@@ -1,4 +1,5 @@
 import base58check from '@vandeurenglenn/base58check';
+import multiWif from '@leofcoin/multi-wif';
 import secp256k1 from 'secp256k1';
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat';
 import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat';
@@ -8,31 +9,36 @@ import wif from '@leofcoin/wif';
 import MultiSignature from 'multi-signature';
 import varint from 'varint';
 
-var testnets = {
-    'leofcoin:olivia': {
-        messagePrefix: '\u0019Leofcoin Signed Message:',
-        pubKeyHash: 0x73,
-        scriptHash: 0x76,
-        multiTxHash: 0x8b4125,
-        payments: {
-            version: 0,
-            unspent: 0x1fa443d7 // ounsp
-        },
-        wif: 0x7D,
-        multiCodec: 0x7c4,
-        bip32: { public: 0x13BBF2D5, private: 0x13BBCBC5 }
+const leofcoinOlivia = {
+    messagePrefix: '\u0019Leofcoin Signed Message:',
+    version: 1,
+    pubKeyHash: 0x73,
+    scriptHash: 0x76,
+    multiTxHash: 0x8b4125,
+    payments: {
+        version: 0,
+        unspent: 0x1fa443d7 // ounsp
     },
-    'bitcoin:testnet': {
-        messagePrefix: '\x18Bitcoin Signed Message:\n',
-        bech32: 'tb',
-        pubKeyHash: 0x6f,
-        scriptHash: 0xc4,
-        wif: 0xef,
-        bip32: {
-            public: 0x043587cf,
-            private: 0x04358394
-        }
-    }
+    wif: 0x7D,
+    multiCodec: 0x7c4,
+    bip32: { public: 0x13BBF2D5, private: 0x13BBCBC5 }
+};
+const bitcoinTestnet = {
+    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    version: 1,
+    bech32: 'tb',
+    pubKeyHash: 0x6f,
+    scriptHash: 0xc4,
+    wif: 0xef,
+    bip32: {
+        public: 0x043587cf,
+        private: 0x04358394
+    },
+    multiCodec: 0
+};
+var testnets = {
+    'leofcoin:olivia': leofcoinOlivia,
+    'bitcoin:testnet': bitcoinTestnet
 };
 
 // https://en.bitcoin.it/wiki/List_of_address_prefixes
@@ -42,6 +48,7 @@ var testnets = {
  */
 const leofcoin = {
     messagePrefix: '\u0019Leofcoin Signed Message:',
+    version: 1,
     pubKeyHash: 0x30,
     scriptHash: 0x37,
     multiTxHash: 0x3adeed,
@@ -57,6 +64,7 @@ const leofcoin = {
 };
 const bitcoin = {
     messagePrefix: '\x18Bitcoin Signed Message:\n',
+    version: 1,
     bech32: 'bc',
     pubKeyHash: 0x00,
     multiCodec: 0x00,
@@ -70,16 +78,20 @@ const bitcoin = {
 };
 const litecoin = {
     messagePrefix: '\x19Litecoin Signed Message:\n',
+    version: 1,
     pubKeyHash: 0x30,
     scriptHash: 0x32,
     wif: 0xb0,
     bip32: {
         public: 0x019da462,
         private: 0x019d9cfe
-    }
+    },
+    bech32: '',
+    multiCodec: 0
 };
 const ethereum = {
     messagePrefix: '\x19Ethereum Signed Message:\n',
+    version: 1,
     pubKeyHash: 0x30,
     scriptHash: 0x32,
     bip32: {
@@ -111,6 +123,9 @@ class HdNode {
     #index;
     #parentFingerprint;
     constructor(privateKey, publicKey, chainCode, network, depth = 0, index = 0, parentFingerprint = 0x00000000) {
+        this.init(privateKey, publicKey, chainCode, network, depth, index, parentFingerprint);
+    }
+    init(privateKey, publicKey, chainCode, network, depth = 0, index = 0, parentFingerprint = 0x00000000) {
         this.#privateKey = privateKey;
         this.#publicKey = publicKey;
         this.#chainCode = chainCode;
@@ -293,20 +308,10 @@ class HdNode {
                 throw new TypeError('Invalid private key');
             return new HdNode(privateKey, undefined, chainCode, network, depth, index, parentFingerprint);
         }
+        this.init(undefined, k, chainCode, network, depth, index, parentFingerprint);
         return new HdNode(undefined, k, chainCode, network, depth, index, parentFingerprint);
     }
 }
-
-const fromNetworkString = network => {
-    const parts = network.split(':');
-    network = networks[parts[0]];
-    if (parts[1]) {
-        if (network[parts[1]])
-            network = network[parts[1]];
-        network.coin_type = 1;
-    }
-    return network;
-};
 
 // see https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
 
@@ -376,13 +381,22 @@ class Mnemonic {
   }
 }
 
+const fromNetworkString = network => {
+    const parts = network.split(':');
+    network = networks[parts[0]];
+    if (parts[1]) {
+        if (network[parts[1]])
+            network = network[parts[1]];
+        network.coin_type = 1;
+    }
+    return network;
+};
 const publicKeyToEthereumAddress = async (publicKeyBuffer) => {
     const hasher = await createKeccak(256);
     hasher.update(publicKeyBuffer);
     const hash = hasher.digest();
-    return `0x${hash.slice(-40).toString('hex')}`;
+    return `0x${hash.slice(-40).toString()}`;
 };
-
 class HDWallet {
     hdnode;
     networkName;
@@ -502,6 +516,9 @@ class HDWallet {
         await this.defineHDNode(node);
         return this;
     }
+    async fromPrivateKey(privateKey, chainCode, network) {
+        await this.defineHDNode(await (new HdNode()).fromPrivateKey(privateKey, chainCode, network));
+    }
 }
 
 class MultiWallet extends HDWallet {
@@ -516,7 +533,7 @@ class MultiWallet extends HDWallet {
         ]));
     }
     get multiWIF() {
-        return this.ifNotLocked(async () => this.encode());
+        return this.toMultiWif();
     }
     get neutered() {
         return new HDAccount(this.networkName, this, this.hdnode.depth);
@@ -536,51 +553,25 @@ class MultiWallet extends HDWallet {
     }
     async unlock({ key, iv, cipher }) {
         const decrypted = await decrypt({ cipher, key, iv });
-        await this.import(new TextDecoder().decode(decrypted));
+        await this.fromMultiWif(new TextDecoder().decode(decrypted));
         this.locked = false;
     }
-    export() {
-        return this.encode();
-    }
-    /**
-     * encodes the multiWIF and loads wallet from bs58
-     *
-     * @param {multiWIF} multiWIF - note a multiWIF is not the same as a wif
-     */
-    async import(multiWIF) {
-        const { bs58, version, multiCodec } = await this.decode(multiWIF);
+    fromMultiWif(string) {
+        const { version, codec, privateKey } = multiWif.decode(string);
         this.network = Object.values(networks).reduce((p, c) => {
-            if (c.multiCodec === multiCodec)
+            if (c.multiCodec === codec)
                 return c;
-            else if (c.testnet && c.testnet.multiCodec === multiCodec)
+            else if (c.testnet && c.testnet.multiCodec === codec)
                 return c.testnet;
             else
                 return p;
         }, networks['leofcoin']);
-        await this.load(bs58, this.networkName);
+        if (version !== this.network.version)
+            throw new Error('invalid version');
+        return this.fromPrivateKey(privateKey, undefined, this.network);
     }
-    /**
-     * @return base58Check encoded string
-     */
-    async encode() {
-        const { data, prefix } = await base58check.decode(await this.save());
-        return base58check.encode(typedArraySmartConcat([
-            new TextEncoder().encode(this.version.toString()),
-            new TextEncoder().encode(this.multiCodec.toString()),
-            prefix,
-            data,
-        ]));
-    }
-    async decode(bs58) {
-        let [version, multiCodec, prefix, data] = typedArraySmartDeconcat((await base58check.decode(bs58)).data);
-        version = Number(new TextDecoder().decode(version));
-        multiCodec = Number(new TextDecoder().decode(multiCodec));
-        bs58 = await base58check.encode(data, prefix);
-        if (version !== this.version)
-            throw TypeError('Invalid version');
-        if (this.multiCodec !== multiCodec)
-            throw TypeError('Invalid multiCodec');
-        return { version, multiCodec, bs58 };
+    toMultiWif() {
+        return multiWif.encode(this.network.version, this.network.multiCodec, this.privateKey);
     }
     sign(hash) {
         return new MultiSignature(this.version, this.network.multiCodec)
@@ -592,7 +583,7 @@ class MultiWallet extends HDWallet {
     }
     /**
      * @param {number} account - account to return chain for
-     * @return { internal(addressIndex), external(addressIndex) }
+     * @return internal(addressIndex), external(addressIndex)
      */
     account(index) {
         return new HDAccount(this.networkName, this, index);

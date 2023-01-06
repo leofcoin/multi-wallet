@@ -8,8 +8,9 @@ import testnets from './testnets.js';
  * Main network
  * @return {messagePrefix, pubKeyHash, scriptHash, wif, bip32}
  */
-const leofcoin = {
+const leofcoin: leofcoinNetwork = {
 	messagePrefix: '\u0019Leofcoin Signed Message:',
+	version: 1,
 	pubKeyHash: 0x30, // L
 	scriptHash: 0x37, // P
 	multiTxHash: 0x3adeed, // Lmtx
@@ -24,8 +25,9 @@ const leofcoin = {
 	testnet: testnets['leofcoin:olivia']
 };
 
-const bitcoin = {
+const bitcoin: bitcoinNetwork = {
 	messagePrefix: '\x18Bitcoin Signed Message:\n',
+	version: 1,
 	bech32: 'bc',
 	pubKeyHash: 0x00,
 	multiCodec: 0x00,
@@ -38,19 +40,23 @@ const bitcoin = {
 	testnet: testnets['bitcoin:testnet']
 };
 
-const litecoin = {
-	messagePrefix: '\x19Litecoin Signed Message:\n',
-	pubKeyHash: 0x30,
-	scriptHash: 0x32,
-	wif: 0xb0,
-	bip32: {
-		public: 0x019da462,
-		private: 0x019d9cfe
-	}
+const litecoin: bitcoinNetwork = {
+  messagePrefix: '\x19Litecoin Signed Message:\n',
+	version: 1,
+  pubKeyHash: 0x30,
+  scriptHash: 0x32,
+  wif: 0xb0,
+  bip32: {
+    public: 0x019da462,
+    private: 0x019d9cfe
+  },
+  bech32: '',
+  multiCodec: 0
 };
 
-const ethereum = {
+const ethereum: network = {
 	messagePrefix: '\x19Ethereum Signed Message:\n',
+	version: 1,
 	pubKeyHash: 0x30,
 	scriptHash: 0x32,
 	bip32: {

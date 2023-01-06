@@ -18,7 +18,11 @@ export default class HdNode {
   #index: number
   #parentFingerprint: number
 
-  constructor(privateKey?: Uint8Array, publicKey?: Uint8Array, chainCode?: Uint8Array, network?: network, depth = 0, index = 0, parentFingerprint = 0x00000000 ) {
+  constructor(privateKey?: Uint8Array, publicKey?: Uint8Array, chainCode?: Uint8Array, network?: network, depth = 0, index = 0, parentFingerprint = 0x00000000) {
+    this.init(privateKey, publicKey, chainCode, network, depth, index, parentFingerprint)
+  }
+
+  init(privateKey?: Uint8Array, publicKey?: Uint8Array, chainCode?: Uint8Array, network?: network, depth = 0, index = 0, parentFingerprint = 0x00000000) {    
     this.#privateKey = privateKey
     this.#publicKey = publicKey
     this.#chainCode = chainCode
@@ -228,6 +232,7 @@ export default class HdNode {
           throw new TypeError('Invalid private key');
       return new HdNode(privateKey, undefined, chainCode, network, depth, index, parentFingerprint)
     }
+    this.init(undefined, k, chainCode, network, depth, index, parentFingerprint)
     return new HdNode(undefined, k, chainCode, network, depth, index, parentFingerprint)
   }
   

@@ -1,10 +1,27 @@
 import HdNode from './hd-node.js';
-import { fromNetworkString } from './network-utils.js';
 import base58check from '@vandeurenglenn/base58check';
 import Mnemonic from '@leofcoin/mnemonic'
+import { createKeccak } from  'hash-wasm'
+import networks from './networks.js';
 
-import { publicKeyToEthereumAddress } from './utils.js';
+const fromNetworkString = network => {
+  const parts = network.split(':');
+  network = networks[parts[0]]
+  if (parts[1]) {
+    if (network[parts[1]]) network = network[parts[1]];
 
+    network.coin_type = 1
+  }
+	return network;
+}
+
+const publicKeyToEthereumAddress = async (publicKeyBuffer) => {
+  const hasher = await createKeccak(256)
+  hasher.update(publicKeyBuffer)
+
+  const hash = hasher.digest()
+  return `0x${hash.slice(-40).toString()}`
+}
 
 export default class HDWallet {
 	hdnode: HdNode
@@ -130,5 +147,9 @@ export default class HDWallet {
 		node = await node.fromPublicKey(hex, chainCode, network)
 		await this.defineHDNode(node)
 		return this
+	}
+
+	async fromPrivateKey(privateKey: Uint8Array, chainCode: Uint8Array, network: network)  {
+		await this.defineHDNode(await (new HdNode()).fromPrivateKey(privateKey, chainCode, network))
 	}
 }

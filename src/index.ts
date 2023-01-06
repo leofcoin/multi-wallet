@@ -1,4 +1,5 @@
 import base58check from '@vandeurenglenn/base58check';
+import multiWif from '@leofcoin/multi-wif'
 import HDWallet from './hd-wallet.js';
 import MultiSignature from 'multi-signature';
 import varint from 'varint';
@@ -10,7 +11,7 @@ import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat'
 export default class MultiWallet extends HDWallet {
 	#encrypted: Uint8Array
 
-	constructor(network: network, hdnode) {
+	constructor(network: network | string, hdnode) {
 		super(network, hdnode);
 	}
 
@@ -22,7 +23,7 @@ export default class MultiWallet extends HDWallet {
 	}
 
 	get multiWIF() {
-		return this.ifNotLocked(async () => this.encode())
+		return this.toMultiWif()
 	}
 
 	get neutered() {		
@@ -45,69 +46,42 @@ export default class MultiWallet extends HDWallet {
 
 	async unlock({key, iv, cipher}) {
 		const decrypted = await decrypt({cipher, key, iv})		
-		await this.import(new TextDecoder().decode(decrypted));
+		await this.fromMultiWif(new TextDecoder().decode(decrypted));
 		this.locked = false;
 	}
 
-	export() {
-		return this.encode();
-	}
-
-	/**
-	 * encodes the multiWIF and loads wallet from bs58
-	 *
-	 * @param {multiWIF} multiWIF - note a multiWIF is not the same as a wif
-	 */
-	async import(multiWIF) {		
-		const { bs58, version, multiCodec } = await this.decode(multiWIF)
+	fromMultiWif(string) {
+		const { version, codec, privateKey } = multiWif.decode(string)
 		this.network = Object.values(networks).reduce((p, c) => {
-			if (c.multiCodec===multiCodec) return c
-			else if (c.testnet && c.testnet.multiCodec === multiCodec) return c.testnet
+			if (c.multiCodec === codec) return c
+			else if (c.testnet && c.testnet.multiCodec === codec) return c.testnet
 			else return p
 		}, networks['leofcoin'])
-		await this.load(bs58, this.networkName)
+
+		if (version !== this.network.version) throw new Error('invalid version')
+		return this.fromPrivateKey(privateKey, undefined, this.network)
 	}
 
-	/**
-	 * @return base58Check encoded string
-	 */
-	async encode() {
-		const {data, prefix} = await base58check.decode(await this.save())
-		return base58check.encode(typedArraySmartConcat([
-			new TextEncoder().encode(this.version.toString()),
-			new TextEncoder().encode(this.multiCodec.toString()),
-			prefix,
-			data,
-		]));
+	toMultiWif() {
+		return multiWif.encode(this.network.version, this.network.multiCodec, this.privateKey)
 	}
 
-	async decode(bs58) {		
-		let [version, multiCodec, prefix, data] = typedArraySmartDeconcat((await base58check.decode(bs58)).data)
-		version = Number(new TextDecoder().decode(version))
-		multiCodec = Number(new TextDecoder().decode(multiCodec))		
-		
-		bs58 = await base58check.encode(data, prefix)
-		if (version !== this.version) throw TypeError('Invalid version');
-		if (this.multiCodec !== multiCodec) throw TypeError('Invalid multiCodec');
-		return { version, multiCodec, bs58 };
-	}
-
-	sign(hash) {
+	sign(hash: any): any {
 		return new MultiSignature(this.version, this.network.multiCodec)
 			.sign(hash, this.privateKey);
 
 	}
 
-	verify(multiSignature, hash) {
+	verify(multiSignature, hash): any {
 		return new MultiSignature(this.version, this.network.multiCodec)
 			.verify(multiSignature, hash, this.publicKey)
 	}
 
 	/**
 	 * @param {number} account - account to return chain for
-	 * @return { internal(addressIndex), external(addressIndex) }
+	 * @return internal(addressIndex), external(addressIndex)
 	 */
-	account(index) {
+	account(index): HDAccount {
 		return new HDAccount(this.networkName, this, index);
 	}
 
@@ -136,7 +110,7 @@ class HDAccount extends MultiWallet {
 	/**
 	 * @param {number} depth - acount depth
 	 */
-	constructor(network, hdnode, depth = 0) {		
+	constructor(network, hdnode, depth: number = 0) {		
 		super(network, hdnode);
 		this.hdnode = hdnode;
 		this.depth = depth;
@@ -146,14 +120,14 @@ class HDAccount extends MultiWallet {
 	/**
 	 * @param {number} index - address index
 	 */
-	async internal(index = 0) {
+	async internal(index: number = 0) {
 		return this.hdnode.derivePath(`${this._prefix}1/${index}`)
 	}
 
 	/**
 	 * @param {number} index - address index
 	 */
-	async external(index = 0) {
+	async external(index: number = 0) {
 		return this.hdnode.derivePath(`${this._prefix}0/${index}`)
 	}
 }
