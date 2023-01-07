@@ -3,7 +3,7 @@ import multiWif from '@leofcoin/multi-wif';
 import secp256k1 from 'secp256k1';
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat';
 import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat';
-import hashWasm, { createKeccak } from 'hash-wasm';
+import { createRIPEMD160, createHMAC, createSHA512, createKeccak } from 'hash-wasm';
 import { createHash, randombytes, pbkdf2, encrypt, decrypt } from '@leofcoin/crypto';
 import wif from '@leofcoin/wif';
 import MultiSignature from 'multi-signature';
@@ -152,7 +152,7 @@ class HdNode {
     }
     async hash160(data) {
         const hash = await createHash(data, 'SHA-256');
-        return (await hashWasm.createRIPEMD160()).update(new Uint8Array(hash)).digest('binary');
+        return (await createRIPEMD160()).update(new Uint8Array(hash)).digest('binary');
     }
     get isNeutered() {
         return this.#privateKey === undefined;
@@ -176,7 +176,7 @@ class HdNode {
             throw new TypeError('Seed should be at least 128 bits');
         if (seed.length > 64)
             throw new TypeError('Seed should be at most 512 bits');
-        let hash = (await hashWasm.createHMAC(hashWasm.createSHA512(), new TextEncoder().encode('Bitcoin seed')))
+        let hash = (await createHMAC(createSHA512(), new TextEncoder().encode('Bitcoin seed')))
             .update(seed)
             .digest('binary');
         const privateKey = hash.subarray(0, 32);
@@ -230,7 +230,7 @@ class HdNode {
                 new TextEncoder().encode(index.toString())
             ]);
         }
-        const hash = (await hashWasm.createHMAC(hashWasm.createSHA512(), this.#chainCode))
+        const hash = (await createHMAC(createSHA512(), this.#chainCode))
             .update(data)
             .digest('binary');
         const privateKey = hash.subarray(0, 32);

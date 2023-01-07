@@ -2,7 +2,7 @@ import secp256k1 from 'secp256k1'
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat'
 import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat'
 import networks from './networks.js'
-import hashWasm from 'hash-wasm'
+import { createRIPEMD160, createHMAC, createSHA512 } from 'hash-wasm'
 import { createHash } from '@leofcoin/crypto'
 import base58check from '@vandeurenglenn/base58check'
 import wif from '@leofcoin/wif'
@@ -54,7 +54,7 @@ export default class HdNode {
 
   async hash160(data) {
     const hash = await createHash(data, 'SHA-256')
-    return (await hashWasm.createRIPEMD160()).update(new Uint8Array(hash)).digest('binary')
+    return (await createRIPEMD160()).update(new Uint8Array(hash)).digest('binary')
   }
 
   get isNeutered() {
@@ -85,7 +85,7 @@ export default class HdNode {
     if (seed.length > 64)
         throw new TypeError('Seed should be at most 512 bits');
     
-    let hash = (await hashWasm.createHMAC(hashWasm.createSHA512(), new TextEncoder().encode('Bitcoin seed')))
+    let hash = (await createHMAC(createSHA512(), new TextEncoder().encode('Bitcoin seed')))
     .update(seed)
     .digest('binary')
 
@@ -142,7 +142,7 @@ export default class HdNode {
         new TextEncoder().encode(index.toString())
       ])
     }
-    const hash = (await hashWasm.createHMAC(hashWasm.createSHA512(), this.#chainCode))
+    const hash = (await createHMAC(createSHA512(), this.#chainCode))
       .update(data)
       .digest('binary')
     
