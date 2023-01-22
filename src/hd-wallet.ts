@@ -149,7 +149,7 @@ export default class HDWallet {
 		return this
 	}
 
-	async fromPrivateKey(privateKey: Uint8Array, chainCode: Uint8Array, network: network)  {
+	async fromPrivateKey(privateKey: Uint8Array, chainCode?: Uint8Array, network?: network)  {
 		await this.defineHDNode(await (new HdNode()).fromPrivateKey(privateKey, chainCode, network))
 	}
 }

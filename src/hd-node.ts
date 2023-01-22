@@ -65,7 +65,7 @@ export default class HdNode {
     return new HdNode(undefined, this.#publicKey, this.#chainCode, this.#network, this.#depth, this.#index, this.#parentFingerprint);
   }
 
-  fromPrivateKey(privateKey: Uint8Array, chainCode, network): HdNode {
+  fromPrivateKey(privateKey: Uint8Array, chainCode?, network?): HdNode {
     if (!privateKeyVerify(privateKey)) throw new TypeError('Private key not in range [1, n)');
 
     return new HdNode(privateKey, publicKeyCreate(privateKey, true), chainCode, network);

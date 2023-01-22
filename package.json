@@ -3,7 +3,7 @@
   "version": "3.0.2",
   "description": "<version><codec><wallet>",
   "type": "module",
-  "types": "./index.d.ts",
+  "types": "./exports/types/index.d.ts",
   "exports": {
     ".": "./exports/index.js"
   },
@@ -39,7 +39,7 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^10.0.1",
     "@vandeurenglenn/base58": "^1.1.1",
-    "rollup": "^3.9.0",
+    "rollup": "^3.10.1",
     "tape": "^4.13.3",
     "tslib": "^2.4.1",
     "typescript": "^4.9.4"

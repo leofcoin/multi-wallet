@@ -3,11 +3,11 @@
     "target": "es2022",
     "moduleResolution":"NodeNext",
     "allowJs": true,
-    "outDir": "exports"
+    "outDir": "./exports/types",
+    "declaration": true
   },
   "include": [
-    "./src/**/*",
-    "./index.d.ts"
+    "./src/**/*"
   ],
   "exclude": ["node_modules"]
 }
