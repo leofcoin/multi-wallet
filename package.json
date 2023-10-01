@@ -26,7 +26,8 @@
     "cryptocurrency"
   ],
   "dependencies": {
-    "@leofcoin/crypto": "^0.2.0",
+    "@leofcoin/crypto": "^0.2.7",
+    "@leofcoin/identity-utils": "^1.0.2",
     "@leofcoin/mnemonic": "^1.0.7",
     "@leofcoin/multi-wif": "^1.1.0",
     "@leofcoin/wif": "^1.0.0",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^10.0.1",
+    "@types/secp256k1": "^4.0.4",
     "@vandeurenglenn/base58": "^1.1.1",
     "rollup": "^3.10.1",
     "tape": "^4.13.3",

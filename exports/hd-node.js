@@ -4,8 +4,10 @@ import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat'
 import networks from './networks.js';
 import { createRIPEMD160, createHMAC, createSHA512 } from 'hash-wasm';
 import { createHash } from '@leofcoin/crypto';
-import base58check from '@vandeurenglenn/base58check';
+import { b as base58check } from './base58check-8a065f2e.js';
 import wif from '@leofcoin/wif';
+import '@vandeurenglenn/base58';
+import '@vandeurenglenn/typed-array-concat';
 
 const HIGHEST_BIT = 0x80000000;
 const { publicKeyCreate, publicKeyVerify, privateKeyVerify, privateKeyTweakAdd, ecdh } = secp256k1;

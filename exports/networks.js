@@ -1,6 +1,9 @@
 import testnets from './testnets.js';
 
 // https://en.bitcoin.it/wiki/List_of_address_prefixes
+// usage:
+// networks['bitcoin']['testnet']
+// networks.bitcoin.testnet
 /**
  * Main network
  * @return {messagePrefix, pubKeyHash, scriptHash, wif, bip32}

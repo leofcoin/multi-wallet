@@ -1,7 +1,10 @@
-import base58check from '@vandeurenglenn/base58check';
+import { b as base58check } from './base58check-8a065f2e.js';
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat';
 import MultiHDNode from './multi-node.js';
 import HDAccount from './hd-account.js';
+import '@vandeurenglenn/base58';
+import '@leofcoin/crypto';
+import '@vandeurenglenn/typed-array-concat';
 import '@leofcoin/multi-wif';
 import './hd-wallet.js';
 import './hd-node.js';
@@ -9,8 +12,7 @@ import '@leofcoin/mnemonic';
 import 'hash-wasm';
 import './networks.js';
 import 'multi-signature';
-import 'varint';
-import '@leofcoin/crypto';
+import '@leofcoin/identity-utils';
 
 class MultiWallet extends MultiHDNode {
     constructor(network, hdnode) {

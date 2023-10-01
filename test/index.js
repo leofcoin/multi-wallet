@@ -51,7 +51,7 @@ for (const key of Object.keys(config)) {
   	await hdnode.load(bs58);
   	const alice = await hdnode.account(0).external(0)
   	tape.equal(signature, encode(alice.sign(hash)), 'alice can sign')
-    
+
     hdnode = new MultiWallet(key);
     await hdnode.load(bs58);
     external = (await hdnode.account(0).external(0))
@@ -67,11 +67,12 @@ for (const key of Object.keys(config)) {
     tape.notEqual((await account.internal(0)).publicKey, (await account.external(0)).publicKey, 'create internal/external chains');
 
     hdnode = new MultiWallet(key);
-  	const locked = await hdnode.lock(multiWIF)
+    await hdnode.recover(mnemonic);
+  	const locked = await hdnode.lock('')
   	tape.ok(locked && !hdnode.privateKey, 'lock')
 
   	hdnode = new MultiWallet(key);
-  	await hdnode.unlock(encrypted)
+  	await hdnode.unlock('', encrypted)
   	tape.equal(await hdnode.multiWIF, multiWIF, 'unlock')
 
     tape.equal(await hdnode.id, id, 'id')

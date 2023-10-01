@@ -1,8 +1,11 @@
 import HdNode from './hd-node.js';
-import base58check from '@vandeurenglenn/base58check';
+import { b as base58check } from './base58check-8a065f2e.js';
 import Mnemonic from '@leofcoin/mnemonic';
 import { createKeccak } from 'hash-wasm';
 import networks from './networks.js';
+import '@vandeurenglenn/base58';
+import '@leofcoin/crypto';
+import '@vandeurenglenn/typed-array-concat';
 
 const fromNetworkString = network => {
     const parts = network.split(':');
@@ -57,6 +60,7 @@ class HDWallet {
             return this.ethereumAddress();
         if (coin_type === 640)
             return this.leofcoinAddress();
+        // if (coin_type === 0) return this.bitcoinAddress()
     }
     get accountAddress() {
         return this.ifNotLocked(async () => base58check.encode(this.hdnode.publicKey));

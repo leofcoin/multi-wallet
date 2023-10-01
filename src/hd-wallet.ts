@@ -1,5 +1,6 @@
 import HdNode from './hd-node.js';
 import base58check from '@vandeurenglenn/base58check';
+import base58 from '@vandeurenglenn/base58'
 import Mnemonic from '@leofcoin/mnemonic'
 import { createKeccak } from  'hash-wasm'
 import networks from './networks.js';
@@ -55,6 +56,7 @@ export default class HDWallet {
 
 	async getAddressForCoin(coin_type?: number): Promise<any> {
 		if (!coin_type) coin_type = this.network.coin_type
+		
 		if (coin_type === 1) {
 			if (this.networkName?.split(':')[0] === 'ethereum') coin_type = 60
 			if (this.networkName?.split(':')[0] === 'leofcoin') coin_type = 640
@@ -62,6 +64,7 @@ export default class HDWallet {
 		// if (coin_type === 0) return this.bitcoinAddress
 		if (coin_type === 60) return this.ethereumAddress()
 		if (coin_type === 640) return this.leofcoinAddress()
+		// if (coin_type === 0) return this.bitcoinAddress()
 	}
 
 	get accountAddress(): Promise<undefined | Uint8Array> {

@@ -4,7 +4,7 @@ import HDWallet from './hd-wallet.js';
 import MultiSignature from 'multi-signature';
 import varint from 'varint';
 import networks from './networks.js'
-import { encrypt, decrypt } from '@leofcoin/crypto'
+import { decrypt, encrypt } from "@leofcoin/identity-utils";
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat'
 import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat'
 
@@ -33,16 +33,17 @@ class MultiHDNode extends HDWallet {
 		this.fromPublicKey(buffer, null, this.networkName)
 	}
 
-	async lock(multiWIF) {
+	async lock(password, multiWIF) {
 		if (!multiWIF) multiWIF = this.multiWIF;		
-		this.#encrypted = await encrypt(multiWIF);
+		this.#encrypted = await encrypt(password, multiWIF);
 		this.locked = true;
-		return this.#encrypted
+		return base58check.encode(this.#encrypted)
 	}
 
-	async unlock({key, iv, cipher}) {
-		const decrypted = await decrypt({cipher, key, iv})		
-		await this.fromMultiWif(new TextDecoder().decode(decrypted));
+	async unlock(password, encrypted) {
+		const { prefix, data } = await base58check.decode(encrypted)
+		const decrypted = await decrypt(password, data)		
+		await this.fromMultiWif(decrypted);
 		this.locked = false;
 	}
 

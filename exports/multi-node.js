@@ -1,14 +1,91 @@
-import base58check from '@vandeurenglenn/base58check';
+import { b as base58check } from './base58check-8a065f2e.js';
 import multiWif from '@leofcoin/multi-wif';
 import HDWallet from './hd-wallet.js';
 import MultiSignature from 'multi-signature';
-import varint from 'varint';
 import networks from './networks.js';
-import { encrypt, decrypt } from '@leofcoin/crypto';
+import { encrypt, decrypt } from '@leofcoin/identity-utils';
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat';
+import '@vandeurenglenn/base58';
+import '@leofcoin/crypto';
+import '@vandeurenglenn/typed-array-concat';
 import './hd-node.js';
 import '@leofcoin/mnemonic';
 import 'hash-wasm';
+
+const MSB$1 = 0x80;
+const REST$1 = 0x7F;
+const MSBALL = ~REST$1;
+const INT = Math.pow(2, 31);
+const encode = (num, out, offset) => {
+    if (Number.MAX_SAFE_INTEGER && num > Number.MAX_SAFE_INTEGER) {
+        encode.bytes = 0;
+        throw new RangeError('Could not encode varint');
+    }
+    out = out || [];
+    offset = offset || 0;
+    const oldOffset = offset;
+    while (num >= INT) {
+        out[offset++] = (num & 0xFF) | MSB$1;
+        num /= 128;
+    }
+    while (num & MSBALL) {
+        out[offset++] = (num & 0xFF) | MSB$1;
+        num >>>= 7;
+    }
+    out[offset] = num | 0;
+    encode.bytes = offset - oldOffset + 1;
+    return out;
+};
+
+const MSB = 0x80;
+const REST = 0x7F;
+const decode = (buf, offset) => {
+    offset = offset || 0;
+    const l = buf.length;
+    let counter = offset;
+    let result = 0;
+    let shift = 0;
+    let b;
+    do {
+        if (counter >= l || shift > 49) {
+            decode.bytes = 0;
+            throw new RangeError('Could not decode varint');
+        }
+        b = buf[counter++];
+        result += shift < 28
+            ? (b & REST) << shift
+            : (b & REST) * Math.pow(2, shift);
+        shift += 7;
+    } while (b >= MSB);
+    decode.bytes = counter - offset;
+    return result;
+};
+
+const N1 = Math.pow(2, 7);
+const N2 = Math.pow(2, 14);
+const N3 = Math.pow(2, 21);
+const N4 = Math.pow(2, 28);
+const N5 = Math.pow(2, 35);
+const N6 = Math.pow(2, 42);
+const N7 = Math.pow(2, 49);
+const N8 = Math.pow(2, 56);
+const N9 = Math.pow(2, 63);
+var encodingLength = (value) => (value < N1 ? 1
+    : value < N2 ? 2
+        : value < N3 ? 3
+            : value < N4 ? 4
+                : value < N5 ? 5
+                    : value < N6 ? 6
+                        : value < N7 ? 7
+                            : value < N8 ? 8
+                                : value < N9 ? 9
+                                    : 10);
+
+var index = {
+    encode,
+    decode,
+    encodingLength
+};
 
 class MultiHDNode extends HDWallet {
     #encrypted;
@@ -26,20 +103,21 @@ class MultiHDNode extends HDWallet {
     }
     async fromId(id) {
         let buffer = (await base58check.decode(id)).data;
-        varint.decode(buffer);
-        buffer = buffer.slice(varint.decode.bytes);
+        index.decode(buffer);
+        buffer = buffer.slice(index.decode.bytes);
         this.fromPublicKey(buffer, null, this.networkName);
     }
-    async lock(multiWIF) {
+    async lock(password, multiWIF) {
         if (!multiWIF)
             multiWIF = this.multiWIF;
-        this.#encrypted = await encrypt(multiWIF);
+        this.#encrypted = await encrypt(password, multiWIF);
         this.locked = true;
-        return this.#encrypted;
+        return base58check.encode(this.#encrypted);
     }
-    async unlock({ key, iv, cipher }) {
-        const decrypted = await decrypt({ cipher, key, iv });
-        await this.fromMultiWif(new TextDecoder().decode(decrypted));
+    async unlock(password, encrypted) {
+        const { prefix, data } = await base58check.decode(encrypted);
+        const decrypted = await decrypt(password, data);
+        await this.fromMultiWif(decrypted);
         this.locked = false;
     }
     fromMultiWif(string) {
