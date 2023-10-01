@@ -4,7 +4,7 @@
     "target": "es2022",
     "moduleResolution":"NodeNext",
     "allowJs": true,
-    "outDir": "./exports/types",
+    "outDir": "./exports",
     "declaration": true,
     "types": [
       "@leofcoin/crypto"

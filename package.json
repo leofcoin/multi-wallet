@@ -6,7 +6,7 @@
   "exports": {
     ".": {
       "import": "./exports/index.js",
-      "types": "./exports/types/index.d.ts"
+      "types": "./exports/index.d.ts"
     }
   },
   "repository": "https://github.com/leofcoin/multi-wallet",
@@ -43,9 +43,9 @@
     "@rollup/plugin-typescript": "^10.0.1",
     "@types/secp256k1": "^4.0.4",
     "@vandeurenglenn/base58": "^1.1.1",
-    "rollup": "^3.10.1",
+    "rollup": "^3.29.4",
     "tape": "^4.13.3",
     "tslib": "^2.4.1",
-    "typescript": "^4.9.4"
+    "typescript": "^5.2.2"
   }
 }
