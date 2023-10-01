@@ -3,9 +3,11 @@
   "version": "3.1.2",
   "description": "<version><codec><wallet>",
   "type": "module",
-  "types": "./exports/types/index.d.ts",
   "exports": {
-    ".": "./exports/index.js"
+    ".": {
+      "import": "./exports/index.js",
+      "types": "./exports/types/index.d.ts"
+    }
   },
   "repository": "https://github.com/leofcoin/multi-wallet",
   "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
