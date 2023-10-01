@@ -22,7 +22,7 @@ for (const key of Object.keys(config)) {
   const { mnemonic, bs58, multiWIF, hash, signature, address, encrypted, id } = config[key]
 
   test(key, async tape => {
-    tape.plan(14)
+    tape.plan(16)
 
     let hdnode = new MultiWallet(key);
     await hdnode.recover(mnemonic);
@@ -72,11 +72,21 @@ for (const key of Object.keys(config)) {
 
     hdnode = new MultiWallet(key);
     await hdnode.fromMultiWif(multiWIF);
-  	const locked = await hdnode.lock('')
-  	tape.ok(locked && !hdnode.privateKey, 'lock')
+  	const exported = await hdnode.export('')
+    hdnode = new MultiWallet(key);
+    await hdnode.import('', exported);
+  	tape.isEqual(await hdnode.multiWIF, multiWIF, 'export')
 
   	hdnode = new MultiWallet(key);
-  	await hdnode.unlock('', encrypted)
+  	await hdnode.import('', encrypted)
+  	tape.equal(await hdnode.multiWIF, multiWIF, 'import')
+
+    hdnode = new MultiWallet(key);
+    await hdnode.fromMultiWif(multiWIF);
+  	await hdnode.lock('')
+  	tape.ok(!hdnode.privateKey, 'lock')
+
+  	await hdnode.unlock('')
   	tape.equal(await hdnode.multiWIF, multiWIF, 'unlock')
 
     tape.equal(await hdnode.id, id, 'id')

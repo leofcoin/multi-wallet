@@ -6,7 +6,7 @@ const defaultConfig = {
   multiWIF: 'n7xap9czUWhSnRUst6ozkjKo7f4Em7FoL3U58N8xjDaiHiDvfoAG',
   signature: '12KMX7SbhBaPdM8HTLZoCmhBXvm8p6ackiwG4tzgc6TazFjFfqpgwFAPBNaE4tjoBqWFkTupGkmrbPqomhicfKjsyWU2',
   address: 'YTqzHv8wH5u3JhPKeYhRmnJfojAu4FnXminDYkCfvXrP5PMwLs3W4',  	
-  encrypted: '33tQRKcS8UhJSPCY7Ujebj8phq9oGdS91fi17FVfYZAkAhbupuUVqskVRqULCUrmiz9jcDZTcjUEvoGN7pe7dtyjjy6WxUQJR8aXkFLXV8z7MkWLYUxnt3crpWHqPfMyJP8TuFv5LgQhNcD7SR3p5kpa'
+  encrypted: '33tQRKcbRy7WwtwGESoE3XiVG5LzgsremMw1wHvPsnakyU2EodNJEnDEyWaXNevLanAJtCmTHXNxxbQ3vJXh2DMX1hJjYxCZqZj9rZpjQAvF4uBoYKb9iCmDaKzvqTdxccB2REUdFDzLMCj9mAxuUCa3'
 }
 
 export default {

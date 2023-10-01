@@ -3,7 +3,7 @@ import multiWif from '@leofcoin/multi-wif';
 import HDWallet from './hd-wallet.js';
 import MultiSignature from 'multi-signature';
 import networks from './networks.js';
-import { encrypt, decrypt } from '@leofcoin/identity-utils';
+import { decrypt, encrypt } from '@leofcoin/identity-utils';
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat';
 import '@vandeurenglenn/base58';
 import '@leofcoin/crypto';
@@ -107,17 +107,22 @@ class MultiHDNode extends HDWallet {
         buffer = buffer.slice(index.decode.bytes);
         this.fromPublicKey(buffer, null, this.networkName);
     }
-    async lock(password, multiWIF) {
-        if (!multiWIF)
-            multiWIF = await this.toMultiWif();
-        this.#encrypted = await encrypt(password, multiWIF);
-        this.locked = true;
-        return base58check.encode(this.#encrypted);
-    }
-    async unlock(password, encrypted) {
+    async import(password, encrypted) {
         const { prefix, data } = await base58check.decode(encrypted);
         const decrypted = await decrypt(password, data);
         await this.fromMultiWif(decrypted);
+    }
+    async export(password) {
+        return base58check.encode(await encrypt(password, await this.toMultiWif()));
+    }
+    async lock(password) {
+        // todo redefine hdnode
+        this.#encrypted = await this.export(password);
+        this.locked = true;
+    }
+    async unlock(password) {
+        const { prefix, data } = await base58check.decode(this.#encrypted);
+        await decrypt(password, data);
         this.locked = false;
     }
     fromMultiWif(string) {
