@@ -68,7 +68,8 @@ export default class HdNode {
   fromPrivateKey(privateKey: Uint8Array, chainCode?, network?): HdNode {
     if (!privateKeyVerify(privateKey)) throw new TypeError('Private key not in range [1, n)');
 
-    return new HdNode(privateKey, publicKeyCreate(privateKey, true), chainCode, network);
+    const publicKey = publicKeyCreate(privateKey, true)
+    return new HdNode(privateKey, publicKey, publicKey.slice(1), network);
   }
 
   fromPublicKey(publicKey: Uint8Array, chainCode, network): HdNode {

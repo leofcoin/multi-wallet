@@ -2,11 +2,11 @@ const defaultConfig = {
   mnemonic: 'fame vacuum enter address sweet entire anxiety ceiling symptom crowd rebuild interest expose chef frown charge year worth state tunnel valid crack very abandon',
   hash: Buffer.alloc(32, 1),
   id: 'oeQvcdmYGuEJFM1qoFpyEg5DK8km4hZzXocrZm43h6ag516WqHUnBMoDb',
-  bs58: '8Z2pzsENgFWWQZrLUJ5RiTjkXH4yrpUrJvwDhjEv5cippx1Xo7KNngehNWArMeEfJRBLU7owGpeUEBtFEhSWn4hU1VKD7NUgL3sngiMHWgosMeB2uKovyZn8QL5',
+  bs58: '8Z2pzsENgFWWQZrLUJ5RiTjkXGgycgvhoe1Etc6gJvucCa8eEiJbLrw4hCH8rVkKi1j3F6tNfWEFo3qrGFJR8ZAyPgKeEKMfTgQD4JQoSJmNjLZMYZYJW7Fy8w2',
   multiWIF: 'n7xap9czUWhSnRUst6ozkjKo7f4Em7FoL3U58N8xjDaiHiDvfoAG',
-  signature: '12KMWV9azTnSJoWvLpRY4s4rDbzEDLDfKiP8Ud3VnSnVojf8p6wAi9tbL5UVbvUXsQt1cMfDqmSUSR572bz3Ka1PfQMm',
-  address: 'YTqz6xb5emRgGFhjoTSQVfhKL2mfeZ6eks3git4HVDJty9aWeZCwg',  	
-  encrypted: '33tQRKcHfQZLDxPPKYWCxMUh39mt6KGXYZuPw5ZPLLffTYY2D7xRqe8mLRUmwWSZLGQG9ubJX4evZuuYYdYqwoYEhsvjW8ricoLG1YeSuz5RXyNq2SqczcB14rg5otcTHA4Y6HF1TBFuxVN4B99WRpXh'
+  signature: '12KMX7SbhBaPdM8HTLZoCmhBXvm8p6ackiwG4tzgc6TazFjFfqpgwFAPBNaE4tjoBqWFkTupGkmrbPqomhicfKjsyWU2',
+  address: 'YTqzHv8wH5u3JhPKeYhRmnJfojAu4FnXminDYkCfvXrP5PMwLs3W4',  	
+  encrypted: '33tQRKcS8UhJSPCY7Ujebj8phq9oGdS91fi17FVfYZAkAhbupuUVqskVRqULCUrmiz9jcDZTcjUEvoGN7pe7dtyjjy6WxUQJR8aXkFLXV8z7MkWLYUxnt3crpWHqPfMyJP8TuFv5LgQhNcD7SR3p5kpa'
 }
 
 export default {
@@ -23,22 +23,23 @@ export default {
   },
   'leofcoin:peach': {
     ...defaultConfig,
+    encrypted: '33tQRKcFAQBADix9845paFbBxNWV2M7mKZFboJK8q2Spi5ebeSWk1X5EM1vZugbpCbqYrkipr2rLDTddwvVhFQrSRKVNQ9B7S3GhZ1B59B49ivJomuTCwPEGYnTPdzNMj5rEgNKUCtMcuGpa6PVgqZHW'
   },
   ethereum: {
     ...defaultConfig,
-    bs58: '2iF1MDW8JiZjT8ApgGEB5WC74kUU8S3nAKggB79ciHh5H6SxhrzhvJpwDxrEHE7yA1eiYsBDR8EV3TfMoP13inL6dLN2RmV7D34C1kd3sXkRCvPddzPHQB9vKD',
+    bs58: '2iF1MDW8JiZjT8ApgGEB5WC74NUDzsuGsPhs3xur2UUSuDZQJrDG6bCFv58j8jnNkZMVXwcc6i23uRGPMEuQDFqUpLo9NeUEqZUZbp8yVVFnuJiGsikonwHGMp',
     multiWIF: 'n7xap9eJXHnKrMvT8BaimqnjGaW8HcbKJUCoqeDAYFmxdXYQseAt',
-    signature: '12Kk4WqsrfSXYfYUJ2q4xNitmfLdkeKPyp427XFVMvYb79NmCBb6j3rP3WQQC11EWdAS84tnZhTBTsV4tC6k7f9vdC9M',
-    address: '0x1fc84aac3fcd9a183f65d8d62dd5427b497df8d8',
+    signature: '12Kk4Wt5D5eQmX9i75wBvMZjBo4X9yW6JjD8z9aW8y4grHGA5i4gX85TgxoqAcZBKLTsZA4LoqNCVvbWabum8wbxWYuG',
+    address: '0x12e1e9e36ece772fe2fe913e0c57e4080ba65163',
     encrypted: '33tQRKcVXEfF4DAhgH5sRD3QdidrNsuK9JFkQkyWn6WU6d14bHAT8MYwCPoffbX2ufkCBYe1p6KpcWp86VnBoH7xKHGnhNY46Th6AgH9H8h9k6Zf3jrDv7JUVKxyTK84WwUDAMbPrLZ8msWUczZ2KC5o'
   },
   'ethereum:kovan': {
     ...defaultConfig,
     multiWIF: 'n7xap9eJXHnKrMvT8BaimqnjGaW8HcbKJUCoqeDAYFmxdXYQseAt',
-    bs58: '2iF1MDW8JiZjT8ApgGEB5WC74kUU8S3nAKggB79ciHh5H6SxhrzhvJpwDxrEHE7yA1eiYsBDR8EV3TfMoP13inL6dLN2RmV7D34C1kd3sXkRCvPddzPHQB9vKD',
+    bs58: '2iF1MDW8JiZjT8ApgGEB5WC74NUDzsuGsPhs3xur2UUSuDZQJrDG6bCFv58j8jnNkZMVXwcc6i23uRGPMEuQDFqUpLo9NeUEqZUZbp8yVVFnuJiGsikonwHGMp',
     publicKey: '027d0711e03fd2f64afe5b797c802cc90d82750bd40ff3863684e738feed812d9a',
-    signature: '12Kk6m5AoEKryPdpd74DciMhZdGaZ2wzzbpWw1kpc1a2JXEfL56wmSr4qiqFes5CGxuBs72GfsjK5NRSFoFg6628MDDh',
-    address: '0xbd7d8adc287b3c924ce46d7507a73cab11c30e96',
+    signature: '12Kk7PNBVx7pHwFBjdCUkcz2sx3V9oJxRcNeXHi1RfF7V3JnBozTzY7rh1vz7qLTbPXS1DGs6s4hEMC8ztzFRqkcfKKx',
+    address: '0xb3db319f241bb64c18424be9b91f14b8a1eea620',
     encrypted: '33tQRKccjuUZbN2NEUFuduQKiRyUA8HSJh4LscVg6gfKRdCWyQLLk5P4C93KWv4Lw7wEJxGzWVJs4gyKfTXiURZqB89GFppGVpTP4FFTRtaoAxfZXvfKTELoaMkGp6ENgCwWevXAkzNBaT35qMpHiUs4'
   }
 }

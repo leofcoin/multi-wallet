@@ -109,7 +109,7 @@ class MultiHDNode extends HDWallet {
     }
     async lock(password, multiWIF) {
         if (!multiWIF)
-            multiWIF = this.multiWIF;
+            multiWIF = await this.toMultiWif();
         this.#encrypted = await encrypt(password, multiWIF);
         this.locked = true;
         return base58check.encode(this.#encrypted);
