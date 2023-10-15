@@ -8,7 +8,7 @@ import testnets from './testnets.js';
  * Main network
  * @return {messagePrefix, pubKeyHash, scriptHash, wif, bip32}
  */
-const leofcoin: leofcoinNetwork = {
+const leofcoin = {
 	messagePrefix: '\u0019Leofcoin Signed Message:',
 	version: 1,
 	pubKeyHash: 0x30, // L
@@ -25,7 +25,7 @@ const leofcoin: leofcoinNetwork = {
 	testnet: testnets['leofcoin:olivia']
 };
 
-const bitcoin: bitcoinNetwork = {
+const bitcoin = {
 	messagePrefix: '\x18Bitcoin Signed Message:\n',
 	version: 1,
 	bech32: 'bc',
@@ -40,7 +40,7 @@ const bitcoin: bitcoinNetwork = {
 	testnet: testnets['bitcoin:testnet']
 };
 
-const litecoin: bitcoinNetwork = {
+const litecoin =  {
   messagePrefix: '\x19Litecoin Signed Message:\n',
 	version: 1,
   pubKeyHash: 0x30,
@@ -54,7 +54,7 @@ const litecoin: bitcoinNetwork = {
   multiCodec: 0
 };
 
-const ethereum: network = {
+const ethereum = {
 	messagePrefix: '\x19Ethereum Signed Message:\n',
 	version: 1,
 	pubKeyHash: 0x30,

@@ -3,6 +3,22 @@ import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat'
 import MultiHDNode from './multi-node.js'
 import HDAccount from './hd-account.js';
 
+export declare type network = {
+	messagePrefix: string,
+	version: number,
+	pubKeyHash: number,
+	scriptHash: number,
+	multiTxHash: number,
+	payments: {
+		version: number,
+		unspent: number
+	},
+	wif: number,
+	multiCodec: number,
+	bip32: { public: number, private: number },
+	testnet: network
+}
+
 class MultiWallet extends MultiHDNode {
 
 	constructor(network, hdnode?: MultiWallet) {

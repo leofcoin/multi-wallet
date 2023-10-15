@@ -7,6 +7,7 @@ import networks from './networks.js'
 import { decrypt, encrypt } from "@leofcoin/identity-utils";
 import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat'
 import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat'
+import { network } from './index.js';
 
 class MultiHDNode extends HDWallet {
 	#encrypted: Uint8Array

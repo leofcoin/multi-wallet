@@ -4,6 +4,7 @@ import base58 from '@vandeurenglenn/base58'
 import Mnemonic from '@leofcoin/mnemonic'
 import { createKeccak } from  'hash-wasm'
 import networks from './networks.js';
+import { network } from './index.js';
 
 const fromNetworkString = network => {
   const parts = network.split(':');

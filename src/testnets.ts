@@ -1,4 +1,4 @@
-const leofcoinOlivia: leofcoinNetwork = {
+const leofcoinOlivia = {
 	messagePrefix: '\u0019Leofcoin Signed Message:',
 	version: 1,
 	pubKeyHash: 0x73, // o
@@ -13,7 +13,7 @@ const leofcoinOlivia: leofcoinNetwork = {
 	bip32: { public: 0x13BBF2D5, private: 0x13BBCBC5 }
 }
 
-const bitcoinTestnet: bitcoinNetwork = {
+const bitcoinTestnet = {
 	messagePrefix: '\x18Bitcoin Signed Message:\n',
 	version: 1,
 	bech32: 'tb',
