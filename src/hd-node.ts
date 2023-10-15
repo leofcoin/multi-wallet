@@ -6,6 +6,7 @@ import { createRIPEMD160, createHMAC, createSHA512 } from 'hash-wasm'
 import { createHash } from '@leofcoin/crypto'
 import base58check from '@vandeurenglenn/base58check'
 import wif from '@leofcoin/wif'
+import { network } from './index.js'
 const HIGHEST_BIT = 0x80000000
 
 const  {publicKeyCreate, publicKeyVerify, privateKeyVerify, privateKeyTweakAdd, ecdh} = secp256k1
@@ -26,6 +27,7 @@ export default class HdNode {
     this.#privateKey = privateKey
     this.#publicKey = publicKey
     this.#chainCode = chainCode
+    // @ts-ignore
     this.#network = network || networks.leofcoin
     this.#depth = depth
     this.#index = index
@@ -188,17 +190,18 @@ export default class HdNode {
     }
 
     let prevHd = this
-    
 
     for (const indexString of splitPath) {
       let index
 
       if (indexString.slice(-1) === `'`) {
         index = parseInt(indexString.slice(0, -1), 10);
+        // @ts-ignore
         prevHd = await prevHd.deriveHardened(index);        
       }
       else {
         index = parseInt(indexString, 10);
+        // @ts-ignore
         prevHd = await prevHd.derive(index);
       }
     }
