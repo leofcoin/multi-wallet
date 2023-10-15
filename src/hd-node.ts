@@ -211,14 +211,19 @@ export default class HdNode {
   async fromBase58(string: base58String, network: network): Promise<HdNode> {
     let buffer = (await base58check.decode(string)).data;
 
+    // @ts-ignore
     network = network || networks.leofcoin;
-    // 4 bytes: version bytes
     let [version, depth, parentFingerprint, index, chainCode, k, privateKey] = typedArraySmartDeconcat(buffer)
 
+    // @ts-ignore
     version = Number(new TextDecoder().decode(version))
+    // @ts-ignore
     depth = Number(new TextDecoder().decode(depth))
+    // @ts-ignore
     parentFingerprint = Number(new TextDecoder().decode(parentFingerprint))
+    // @ts-ignore
     index = Number(new TextDecoder().decode(index))
+    // @ts-ignore
     k = privateKey ? 0 : k
 
     if (version !== network.bip32.private && version !== network.bip32.public)
