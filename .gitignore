@@ -2,3 +2,4 @@ node_modules
 /index.js
 dist
 yarn-error.log
+exports
