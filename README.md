@@ -54,5 +54,25 @@ In short:
 ## API
 TODO...
 
+## Build for browser
+rollup.config.js
+```js
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import builtins from 'rollup-plugin-polyfill-node';
+
+export default {
+    input: [
+      './node_modules/multi-wallet/exports/index.js'
+    ],
+    output: {
+      format: 'es',
+      dir: './dist',
+    },
+    plugins: [nodeResolve(), commonjs(), json(), builtins()],
+  }
+```
+
 ## LICENSE
 Copyright (c) 2019 vandeurenglenn
