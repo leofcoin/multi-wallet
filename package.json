@@ -28,25 +28,25 @@
     "cryptocurrency"
   ],
   "dependencies": {
-    "@leofcoin/crypto": "^0.2.11",
+    "@leofcoin/crypto": "^0.2.37",
     "@leofcoin/identity-utils": "^1.0.2",
-    "@leofcoin/mnemonic": "^1.0.12",
+    "@leofcoin/mnemonic": "^1.0.32",
     "@leofcoin/multi-wif": "^1.1.0",
     "@leofcoin/wif": "^1.0.0",
-    "@vandeurenglenn/base58check": "^1.1.0",
-    "@vandeurenglenn/typed-array-smart-concat": "^1.0.1",
-    "@vandeurenglenn/typed-array-smart-deconcat": "^1.0.0",
-    "hash-wasm": "^4.9.0",
-    "multi-signature": "^1.2.0"
+    "@vandeurenglenn/base58check": "^1.1.1",
+    "@vandeurenglenn/typed-array-smart-concat": "^1.0.4",
+    "@vandeurenglenn/typed-array-smart-deconcat": "^1.0.3",
+    "hash-wasm": "^4.11.0",
+    "multi-signature": "^1.3.1"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-typescript": "^10.0.1",
-    "@types/secp256k1": "^4.0.4",
-    "@vandeurenglenn/base58": "^1.1.1",
-    "rollup": "^3.29.4",
-    "tape": "^4.13.3",
-    "tslib": "^2.4.1",
-    "typescript": "^5.2.2"
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@types/secp256k1": "^4.0.6",
+    "@vandeurenglenn/base58": "^1.1.9",
+    "rollup": "^4.24.3",
+    "tape": "^5.9.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.6.3"
   }
 }
