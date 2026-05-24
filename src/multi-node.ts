@@ -1,90 +1,100 @@
-import base58check from '@vandeurenglenn/base58check';
-import multiWif from '@leofcoin/multi-wif'
-import HDWallet from './hd-wallet.js';
-import MultiSignature from 'multi-signature';
-import varint from 'varint';
-import networks from './networks.js'
+import base58check from "@vandeurenglenn/base58check";
+import multiWif from "@leofcoin/multi-wif";
+import HDWallet from "./hd-wallet.js";
+import MultiSignature from "multi-signature";
+import varint from "varint";
+import networks from "./networks.js";
 import { decrypt, encrypt } from "@leofcoin/identity-utils";
-import typedArraySmartConcat from '@vandeurenglenn/typed-array-smart-concat'
-import typedArraySmartDeconcat from '@vandeurenglenn/typed-array-smart-deconcat'
-import { network } from './index.js';
+import typedArraySmartConcat from "@vandeurenglenn/typed-array-smart-concat";
+import typedArraySmartDeconcat from "@vandeurenglenn/typed-array-smart-deconcat";
+import { network } from "./index.js";
 
 class MultiHDNode extends HDWallet {
-	#encrypted: Uint8Array
+  #encrypted: Uint8Array;
 
-	constructor(network: network | string, hdnode) {
-		super(network, hdnode);
-	}
+  constructor(network: network | string, hdnode) {
+    super(network, hdnode);
+  }
 
-	get id() {
-		return base58check.encode(typedArraySmartConcat([
-			new TextEncoder().encode(this.version.toString()),
-			this.account(0).hdnode.neutered.publicKey
-		]))
-	}
+  get id() {
+    return base58check.encode(
+      typedArraySmartConcat([
+        new TextEncoder().encode(this.version.toString()),
+        this.account(0).hdnode.neutered.publicKey,
+      ]),
+    );
+  }
 
-	get multiWIF() {
-		return this.toMultiWif()
-	}
+  get multiWIF() {
+    return this.toMultiWif();
+  }
 
-	async fromId(id) {
-		let buffer = (await base58check.decode(id)).data
-		const codec = varint.decode(buffer)
-		buffer = buffer.slice(varint.decode.bytes)
-		this.fromPublicKey(buffer, null, this.networkName)
-	}
+  async fromId(id) {
+    let buffer = (await base58check.decode(id)).data;
+    const codec = varint.decode(buffer);
+    buffer = buffer.slice(varint.decode.bytes);
+    this.fromPublicKey(buffer, null, this.networkName);
+  }
 
-	async import(password, encrypted) {
-		const { prefix, data } = await base58check.decode(encrypted)
-		const decrypted = await decrypt(password, data)		
-		await this.fromMultiWif(decrypted);
-	}
+  async import(password, encrypted) {
+    const { prefix, data } = await base58check.decode(encrypted);
+    const decrypted = await decrypt(password, data);
+    await this.fromMultiWif(decrypted);
+  }
 
-	async export(password) {
-		return base58check.encode(
-			await encrypt(password, await this.toMultiWif())
-		)
-	}
+  async export(password) {
+    return base58check.encode(await encrypt(password, await this.toMultiWif()));
+  }
 
-	async lock(password) {
-		// todo redefine hdnode
-		this.#encrypted = await this.export(password)
-		this.locked = true;
-	}
+  async lock(password) {
+    // todo redefine hdnode
+    this.#encrypted = await this.export(password);
+    this.locked = true;
+  }
 
-	async unlock(password) {
-		const { prefix, data } = await base58check.decode(this.#encrypted)
-		
-		await decrypt(password, data)
-		this.locked = false;
-	}
+  async unlock(password) {
+    const { prefix, data } = await base58check.decode(this.#encrypted);
 
-	fromMultiWif(string) {
-		const { version, codec, privateKey } = multiWif.decode(string)
-		this.network = Object.values(networks).reduce((p, c) => {
-			if (c.multiCodec === codec) return c
-			else if (c.testnet && c.testnet.multiCodec === codec) return c.testnet
-			else return p
-		}, networks['leofcoin'])
+    await decrypt(password, data);
+    this.locked = false;
+  }
 
-		if (version !== this.network.version) throw new Error('invalid version')
-		return this.fromPrivateKey(privateKey, undefined, this.network)
-	}
+  fromMultiWif(string) {
+    const { version, codec, privateKey } = multiWif.decode(string);
+    this.network = Object.values(networks).reduce((p, c) => {
+      if (c.multiCodec === codec) return c;
+      else if (c.testnet && c.testnet.multiCodec === codec) return c.testnet;
+      else return p;
+    }, networks["leofcoin"]);
 
-	toMultiWif() {
-		return multiWif.encode(this.network.version, this.network.multiCodec, this.privateKey)
-	}
+    if (version !== this.network.version) throw new Error("invalid version");
+    return this.fromPrivateKey(privateKey, undefined, this.network);
+  }
 
-	sign(hash: any): any {
-		return new MultiSignature(this.version, this.network.multiCodec)
-			.sign(hash, this.privateKey);
+  toMultiWif() {
+    return multiWif.encode(
+      this.network.version,
+      this.network.multiCodec,
+      this.privateKey,
+    );
+  }
 
-	}
+  sign(hash: any): any {
+    return new MultiSignature(this.version, this.network.multiCodec).sign(
+      hash,
+      this.privateKey,
+    );
+  }
 
-	verify(multiSignature, hash): any {
-		return new MultiSignature(this.version, this.network.multiCodec)
-			.verify(multiSignature, hash, this.publicKey)
-	}
+  verify(multiSignature, hash): any {
+    const publicKey =
+      this.publicKey?.length === 33 ? this.publicKey.slice(1) : this.publicKey;
+    return new MultiSignature(this.version, this.network.multiCodec).verify(
+      multiSignature,
+      hash,
+      publicKey,
+    );
+  }
 }
 
-export { MultiHDNode as default }
+export { MultiHDNode as default };
