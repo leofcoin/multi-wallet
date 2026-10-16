@@ -21,6 +21,7 @@ export default [
       './hd-node.js',
       './hd-account.js',
       '@vandeurenglenn/base58check',
+      '@leofcoin/binary',
     ],
     plugins: [typescript()],
   },
