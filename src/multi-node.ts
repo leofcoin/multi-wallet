@@ -2,11 +2,10 @@ import base58check from "@vandeurenglenn/base58check";
 import multiWif from "@leofcoin/multi-wif";
 import HDWallet from "./hd-wallet.js";
 import MultiSignature from "multi-signature";
-import varint from "varint";
+import { BinaryReader } from "@leofcoin/binary";
 import networks from "./networks.js";
 import { decrypt, encrypt } from "@leofcoin/identity-utils";
 import typedArraySmartConcat from "@vandeurenglenn/typed-array-smart-concat";
-import typedArraySmartDeconcat from "@vandeurenglenn/typed-array-smart-deconcat";
 import { network } from "./index.js";
 
 class MultiHDNode extends HDWallet {
@@ -30,10 +29,20 @@ class MultiHDNode extends HDWallet {
   }
 
   async fromId(id) {
-    let buffer = (await base58check.decode(id)).data;
-    const codec = varint.decode(buffer);
-    buffer = buffer.slice(varint.decode.bytes);
-    this.fromPublicKey(buffer, null, this.networkName);
+    const buffer = (await base58check.decode(id)).data;
+    const reader = new BinaryReader(buffer);
+    // IDs contain two framed fields: textual version and compressed public key.
+    // Keep legacy padded length prefixes readable without changing generated IDs.
+    const version = reader.readFrame(false);
+    const publicKey = reader.readFrame(false);
+    const expectedVersion = new TextEncoder().encode(this.version.toString());
+    if (
+      reader.remaining !== 0 ||
+      version.length !== expectedVersion.length ||
+      !version.every((byte, index) => byte === expectedVersion[index]) ||
+      publicKey.length !== 33
+    ) throw new Error("invalid wallet ID");
+    await this.fromPublicKey(publicKey, null, this.networkName);
   }
 
   async import(password, encrypted) {
