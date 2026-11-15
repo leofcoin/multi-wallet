@@ -88,3 +88,11 @@ class MultiWallet extends MultiHDNode {
 }
 
 export { MultiWallet as default };
+export {
+  default as PqWallet,
+  PQ_ADDRESS_PREFIX,
+  PQ_NETWORK,
+  PQ_PUBLIC_KEY_BYTES,
+  PQ_SCHEME,
+  PQ_SIGNATURE_BYTES,
+} from './pq-wallet.js';

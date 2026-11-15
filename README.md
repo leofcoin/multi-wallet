@@ -72,6 +72,34 @@ wallet-specific formats rather than standard BIP32 extended-key encodings.
 Standalone private/public keys and wallet IDs do not contain a BIP32 chain
 code, so they cannot derive child keys unless the chain code is supplied.
 
+## Experimental post-quantum wallet
+
+`PqWallet` is a separate wallet provider for the experimental `leofcoin:pq`
+network. It derives ML-DSA-87 (FIPS 204) keys from the standard 64-byte BIP39
+seed using HKDF-SHA512, with account indices encoded as canonical decimal
+values. It uses the same derivation and chain-bound signing context as the
+Leofcoin private-chain prototype.
+
+```js
+import { PqWallet } from '@leofcoin/multi-wallet';
+
+const wallet = new PqWallet(0);
+const mnemonic = await wallet.generate(); // 24 words; store this recovery phrase securely
+// Or recover with: await wallet.recover(mnemonic, bip39Passphrase)
+wallet.bindChainId(chainId); // required before signing on a validated PQ chain
+const signature = await wallet.sign(transactionDigest); // exactly 32 bytes
+const encryptedBackup = await wallet.export(walletPassword);
+```
+
+The passphrase passed to `generate()` or `recover()` is the BIP39 passphrase;
+the non-empty password passed to `export()`, `import()`, `lock()`, or `unlock()`
+protects the encrypted backup. Keep both distinct. `PqWallet` does not replace the
+existing BIP32/secp256k1 `MultiWallet` and is not compatible with classical
+networks. It is experimental: wallet-side signatures alone do not make a
+network quantum-resistant, and the PQ chain prototype is not a mainnet or
+production migration. Transport encryption and BLS/DKG/ECDH components remain
+classical.
+
 ## Build for browser
 rollup.config.js
 ```js

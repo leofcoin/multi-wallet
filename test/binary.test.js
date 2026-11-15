@@ -329,7 +329,7 @@ test('dependency graph and generated entry points do not import varint', async (
     assert.ok(!name.endsWith('/varint'), name);
     assert.ok(!/^(git\+|git:|github:|file:)/.test(value.resolved ?? ''), name);
   }
-  for (const entry of ['index', 'multi-node', 'hd-account']) {
+  for (const entry of ['index', 'multi-node', 'hd-account', 'pq-wallet']) {
     const source = await readFile(new URL(`../exports/${entry}.js`, import.meta.url), 'utf8');
     assert.doesNotMatch(source, /from ["']varint["']|import ["']varint["']/);
   }
@@ -340,6 +340,6 @@ test('packed archive includes built public runtime and declarations', () => {
     cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf8'
   }));
   const files = new Set(packed.files.map(({ path }) => path));
-  for (const entry of ['exports/index.js', 'exports/index.d.ts', 'exports/multi-node.js'])
+  for (const entry of ['exports/index.js', 'exports/index.d.ts', 'exports/multi-node.js', 'exports/pq-wallet.js'])
     assert.ok(files.has(entry), entry);
 });
