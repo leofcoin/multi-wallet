@@ -55,13 +55,13 @@ const ecdh = (
 };
 
 export default class HdNode {
-  #privateKey: Uint8Array;
-  #publicKey: Uint8Array;
-  #chainCode: Uint8Array;
-  #network: network;
-  #depth: number;
-  #index: number;
-  #parentFingerprint: number;
+  #privateKey!: Uint8Array | undefined;
+  #publicKey!: Uint8Array | undefined;
+  #chainCode!: Uint8Array | undefined;
+  #network!: network;
+  #depth!: number;
+  #index!: number;
+  #parentFingerprint!: number;
 
   constructor(
     privateKey?: Uint8Array,
@@ -91,50 +91,55 @@ export default class HdNode {
     depth = 0,
     index = 0,
     parentFingerprint = 0x00000000,
-  ) {
+  ): void {
     this.#privateKey = privateKey;
     this.#publicKey = publicKey;
     this.#chainCode = chainCode;
-    // @ts-ignore
     this.#network = network || networks.leofcoin;
     this.#depth = depth;
     this.#index = index;
     this.#parentFingerprint = parentFingerprint;
   }
 
-  get network() {
+  get network(): network {
     return this.#network;
   }
 
-  get publicKey() {
-    this.#publicKey =
-      this.#publicKey || publicKeyCreate(this.#privateKey, true);
+  get publicKey(): Uint8Array {
+    if (!this.#publicKey) {
+      if (!this.#privateKey) throw new TypeError("Missing public or private key");
+      this.#publicKey = publicKeyCreate(this.#privateKey, true);
+    }
     return this.#publicKey;
   }
 
-  get privateKey() {
+  get privateKey(): Uint8Array | undefined {
     return this.#privateKey;
   }
 
-  get identifier() {
+  get depth(): number {
+    return this.#depth;
+  }
+
+  get identifier(): Promise<Uint8Array> {
     return this.hash160(this.publicKey);
   }
-  get fingerprint() {
+  get fingerprint(): Promise<Uint8Array> {
     return (async () => (await this.identifier).subarray(0, 4))();
   }
 
-  async hash160(data) {
+  async hash160(data: Uint8Array): Promise<Uint8Array> {
     const hash = await createHash(data, "SHA-256");
     return (await createRIPEMD160())
       .update(new Uint8Array(hash))
       .digest("binary");
   }
 
-  get isNeutered() {
+  get isNeutered(): boolean {
     return this.#privateKey === undefined;
   }
 
-  get neutered() {
+  get neutered(): HdNode {
     return new HdNode(
       undefined,
       this.#publicKey,
@@ -146,7 +151,11 @@ export default class HdNode {
     );
   }
 
-  fromPrivateKey(privateKey: Uint8Array, chainCode?, network?): HdNode {
+  fromPrivateKey(
+    privateKey: Uint8Array,
+    _chainCode?: Uint8Array,
+    network?: network,
+  ): HdNode {
     if (!privateKeyVerify(privateKey))
       throw new TypeError("Private key not in range [1, n)");
 
@@ -154,7 +163,11 @@ export default class HdNode {
     return new HdNode(privateKey, publicKey, publicKey.slice(1), network);
   }
 
-  fromPublicKey(publicKey: Uint8Array, chainCode, network): HdNode {
+  fromPublicKey(
+    publicKey: Uint8Array,
+    chainCode: Uint8Array | undefined,
+    network: network,
+  ): HdNode {
     // verify the X coordinate is a point on the curve
     if (!publicKeyVerify(publicKey))
       throw new TypeError("Point is not on the curve");
@@ -162,7 +175,7 @@ export default class HdNode {
     return new HdNode(undefined, publicKey, chainCode, network);
   }
 
-  async fromSeed(seed: Uint8Array, network) {
+  async fromSeed(seed: Uint8Array, network: network): Promise<HdNode> {
     if (seed.length < 16)
       throw new TypeError("Seed should be at least 128 bits");
     if (seed.length > 64)
@@ -179,8 +192,9 @@ export default class HdNode {
     return this.fromPrivateKey(privateKey, chainCode, network);
   }
 
-  async toBase58() {
+  async toBase58(): Promise<string> {
     const network = this.#network || networks.leofcoin;
+    if (!this.#chainCode) throw new TypeError("Missing chain code");
     let version = !this.isNeutered
       ? network.bip32.private
       : network.bip32.public;
@@ -192,32 +206,34 @@ export default class HdNode {
       new TextEncoder().encode(this.#index.toString()),
       this.#chainCode,
     ];
-    if (!this.isNeutered) {
+    if (this.#privateKey) {
       set.push(new TextEncoder().encode("0"));
-      set.push(new Uint8Array(this.privateKey));
+      set.push(new Uint8Array(this.#privateKey));
     } else {
       set.push(new Uint8Array(this.publicKey));
     }
     return base58check.encode(typedArraySmartConcat(set));
   }
 
-  toWIF() {
+  toWIF(): Promise<string> {
     if (!this.#privateKey) throw new TypeError("Missing private key");
     return wif.encode(this.#network.wif, this.#privateKey, true);
   }
 
   // https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#child-key-derivation-ckd-functions
   async derive(index: number): Promise<HdNode> {
+    if (!this.#chainCode) throw new TypeError("Missing chain code");
     const isHardened = index >= HIGHEST_BIT;
     let data: Uint8Array;
     // Hardened child
     if (isHardened) {
-      if (this.isNeutered)
+      const privateKey = this.#privateKey;
+      if (!privateKey)
         throw new TypeError("Missing private key for hardened child key");
       // data = 0x00 || ser256(kpar) || ser32(index)
       data = typedArraySmartConcat([
         new TextEncoder().encode("0"),
-        this.privateKey,
+        privateKey,
         new TextEncoder().encode(index.toString()),
       ]);
     } else {
@@ -237,13 +253,15 @@ export default class HdNode {
     // Private parent key -> private child key
 
     if (!this.isNeutered) {
+      const parentPrivateKey = this.#privateKey;
+      if (!parentPrivateKey) throw new TypeError("Missing private key");
       // ki = parse256(privateKey) + kpar (mod n)
-      const ki = privateKeyTweakAdd(this.privateKey, privateKey);
+      const ki = privateKeyTweakAdd(parentPrivateKey, privateKey);
       // In case ki == 0, proceed with the next value for i
       if (ki == null) return this.derive(index + 1);
       return new HdNode(
         ki,
-        null,
+        undefined,
         chainCode,
         this.#network,
         this.#depth + 1,
@@ -267,12 +285,12 @@ export default class HdNode {
     );
   }
 
-  deriveHardened(index) {
+  deriveHardened(index: number): Promise<HdNode> {
     // Only derives hardened private keys by default
     return this.derive(index + HIGHEST_BIT);
   }
 
-  async derivePath(path) {
+  async derivePath(path: string): Promise<HdNode> {
     let splitPath = path.split("/");
     if (splitPath[0] === "m") {
       if (this.#parentFingerprint)
@@ -298,7 +316,10 @@ export default class HdNode {
     return prevHd;
   }
 
-  async fromBase58(string: base58String, network: network): Promise<HdNode> {
+  async fromBase58(
+    string: base58String,
+    network: network = networks.leofcoin,
+  ): Promise<HdNode> {
     let buffer = (await base58check.decode(string)).data;
 
     // @ts-ignore

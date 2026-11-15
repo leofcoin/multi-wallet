@@ -6,29 +6,29 @@ import { BinaryReader } from "@leofcoin/binary";
 import networks from "./networks.js";
 import { decrypt, encrypt } from "@leofcoin/identity-utils";
 import typedArraySmartConcat from "@vandeurenglenn/typed-array-smart-concat";
-import { network } from "./index.js";
+import type { network } from "./index.js";
 
 class MultiHDNode extends HDWallet {
-  #encrypted: Uint8Array;
+  #encrypted!: string;
 
-  constructor(network: network | string, hdnode) {
+  constructor(network: network | string, hdnode?: HDWallet["hdnode"]) {
     super(network, hdnode);
   }
 
-  get id() {
+  get id(): Promise<string> {
     return base58check.encode(
       typedArraySmartConcat([
         new TextEncoder().encode(this.version.toString()),
-        this.account(0).hdnode.neutered.publicKey,
+        this.publicKey,
       ]),
     );
   }
 
-  get multiWIF() {
+  get multiWIF(): Promise<string> {
     return this.toMultiWif();
   }
 
-  async fromId(id) {
+  async fromId(id: string): Promise<void> {
     const buffer = (await base58check.decode(id)).data;
     const reader = new BinaryReader(buffer);
     // IDs contain two framed fields: textual version and compressed public key.
@@ -41,67 +41,72 @@ class MultiHDNode extends HDWallet {
       version.length !== expectedVersion.length ||
       !version.every((byte, index) => byte === expectedVersion[index]) ||
       publicKey.length !== 33
-    ) throw new Error("invalid wallet ID");
-    await this.fromPublicKey(publicKey, null, this.networkName);
+    )
+      throw new Error("invalid wallet ID");
+    await this.fromPublicKey(publicKey, undefined, this.network);
   }
 
-  async import(password, encrypted) {
-    const { prefix, data } = await base58check.decode(encrypted);
+  async import(password: string, encrypted: string): Promise<void> {
+    const { data } = await base58check.decode(encrypted);
     const decrypted = await decrypt(password, data);
     await this.fromMultiWif(decrypted);
   }
 
-  async export(password) {
+  async export(password: string): Promise<string> {
     return base58check.encode(await encrypt(password, await this.toMultiWif()));
   }
 
-  async lock(password) {
+  async lock(password: string): Promise<void> {
     // todo redefine hdnode
     this.#encrypted = await this.export(password);
     this.locked = true;
   }
 
-  async unlock(password) {
-    const { prefix, data } = await base58check.decode(this.#encrypted);
+  async unlock(password: string): Promise<void> {
+    const { data } = await base58check.decode(this.#encrypted);
 
     await decrypt(password, data);
     this.locked = false;
   }
 
-  fromMultiWif(string) {
-    const { version, codec, privateKey } = multiWif.decode(string);
-    this.network = Object.values(networks).reduce((p, c) => {
-      if (c.multiCodec === codec) return c;
-      else if (c.testnet && c.testnet.multiCodec === codec) return c.testnet;
-      else return p;
-    }, networks["leofcoin"]);
+  async fromMultiWif(encoded: string): Promise<void> {
+    const { version, codec, privateKey } = await multiWif.decode(encoded);
+    const supportedNetworks: network[] = Object.values(networks);
+    this.network = supportedNetworks.reduce<network>((selected, candidate) => {
+      if (candidate.multiCodec === codec) return candidate;
+      if (candidate.testnet?.multiCodec === codec) return candidate.testnet;
+      return selected;
+    }, networks.leofcoin);
 
     if (version !== this.network.version) throw new Error("invalid version");
-    return this.fromPrivateKey(privateKey, undefined, this.network);
+    await this.fromPrivateKey(privateKey, undefined, this.network);
   }
 
-  toMultiWif() {
+  toMultiWif(): Promise<string> {
+    const privateKey = this.privateKey;
+    if (!privateKey) throw new TypeError("Missing private key");
     return multiWif.encode(
       this.network.version,
       this.network.multiCodec,
-      this.privateKey,
+      privateKey,
     );
   }
 
-  sign(hash: any): any {
+  sign(hash: Uint8Array): Promise<Uint8Array> {
+    const privateKey = this.privateKey;
+    if (!privateKey) throw new TypeError("Missing private key");
     return new MultiSignature(this.version, this.network.multiCodec).sign(
       hash,
-      this.privateKey,
+      privateKey,
     );
   }
 
-  verify(multiSignature, hash): any {
-    const publicKey =
-      this.publicKey?.length === 33 ? this.publicKey.slice(1) : this.publicKey;
+  verify(multiSignature: Uint8Array, hash: Uint8Array): Promise<boolean> {
+    const publicKey = this.publicKey;
     return new MultiSignature(this.version, this.network.multiCodec).verify(
       multiSignature,
       hash,
-      publicKey,
+      publicKey.length === 33 ? publicKey.slice(1) : publicKey,
     );
   }
 }

@@ -1,23 +1,32 @@
 import HdNode from './hd-node.js';
 import base58check from '@vandeurenglenn/base58check';
-import base58 from '@vandeurenglenn/base58';
 import Mnemonic from '@leofcoin/mnemonic';
 import { createKeccak } from 'hash-wasm';
 import networks from './networks.js';
-import { network } from './index.js';
+import type { network } from './index.js';
 
-const fromNetworkString = (network) => {
-  const parts = network.split(':');
-  network = networks[parts[0]];
-  if (parts[1]) {
-    if (network[parts[1]]) network = network[parts[1]];
+const isNetwork = (value: unknown): value is network =>
+  typeof value === 'object' &&
+  value !== null &&
+  'version' in value &&
+  'multiCodec' in value;
 
-    network.coin_type = 1;
+const fromNetworkString = (networkName: string): network => {
+  const [name, variant] = networkName.split(':');
+  if (!Object.hasOwn(networks, name)) throw new TypeError('network not found');
+  let selectedNetwork: network = networks[name as keyof typeof networks];
+
+  if (variant) {
+    const variantNetwork = Reflect.get(selectedNetwork, variant);
+    if (isNetwork(variantNetwork)) selectedNetwork = variantNetwork;
+    selectedNetwork.coin_type = 1;
   }
-  return network;
+  return selectedNetwork;
 };
 
-const publicKeyToEthereumAddress = async (publicKeyBuffer) => {
+const publicKeyToEthereumAddress = async (
+  publicKeyBuffer: Uint8Array,
+): Promise<string> => {
   const hasher = await createKeccak(256);
   hasher.update(publicKeyBuffer);
 
@@ -26,36 +35,36 @@ const publicKeyToEthereumAddress = async (publicKeyBuffer) => {
 };
 
 export default class HDWallet {
-  hdnode: HdNode;
-  networkName: string;
+  hdnode!: HdNode;
+  networkName: string | undefined;
   version: number;
-  locked: boolean;
+  locked = false;
   network: network;
   multiCodec: number;
 
-  get privateKey() {
+  get privateKey(): Uint8Array | undefined {
     return this.ifNotLocked(() => this.hdnode.privateKey);
   }
 
-  get publicKey() {
+  get publicKey(): Uint8Array {
     return this.hdnode.publicKey;
   }
 
-  async ethereumAddress() {
+  async ethereumAddress(): Promise<string> {
     const address = await publicKeyToEthereumAddress(this.publicKey);
     return address;
   }
 
-  leofcoinAddress() {
+  leofcoinAddress(): Promise<string> {
     return base58check.encode(this.publicKey);
   }
 
-  get address(): Promise<string> {
+  get address(): Promise<string | undefined> {
     return this.getAddressForCoin();
   }
 
-  async getAddressForCoin(coin_type?: number): Promise<any> {
-    if (!coin_type) coin_type = this.network.coin_type;
+  async getAddressForCoin(coin_type?: number): Promise<string | undefined> {
+    if (coin_type === undefined) coin_type = this.network.coin_type;
 
     if (coin_type === 1) {
       if (this.networkName?.split(':')[0] === 'ethereum') coin_type = 60;
@@ -67,7 +76,7 @@ export default class HDWallet {
     // if (coin_type === 0) return this.bitcoinAddress()
   }
 
-  get accountAddress(): Promise<undefined | Uint8Array> {
+  get accountAddress(): Promise<string> | undefined {
     return this.ifNotLocked(async () =>
       base58check.encode(this.hdnode.publicKey)
     );
@@ -77,23 +86,26 @@ export default class HDWallet {
     return this.network.coin_type === 1;
   }
 
-  constructor(network: string | network, hdnode: any) {
+  constructor(network: string | network, hdnode?: HdNode) {
     if (typeof network === 'string') {
       this.networkName = network;
       this.network = fromNetworkString(network);
-    } else if (typeof network === 'object') this.network = network;
+    } else {
+      this.networkName = undefined;
+      this.network = network;
+    }
 
     this.multiCodec = this.network.multiCodec;
     this.version = 0x00;
     if (hdnode) this.hdnode = hdnode;
   }
 
-  ifNotLocked(fn: Function, params?: string[]) {
-    if (this.locked) return;
-    return params ? fn(...params) : fn();
+  ifNotLocked<T>(fn: () => T): T | undefined {
+    if (this.locked) return undefined;
+    return fn();
   }
 
-  async defineHDNode(value: HdNode) {
+  async defineHDNode(value: HdNode): Promise<void> {
     Object.defineProperty(this, 'hdnode', {
       configurable: false,
       writable: false,
@@ -101,79 +113,91 @@ export default class HDWallet {
     });
   }
 
-  validateNetwork(network: network) {
-    if (!network && !this.network)
-      return console.error(`expected network to be defined`);
-    if (!network && this.network) network = this.network;
-    if (typeof network === 'string') network = fromNetworkString(network);
-    if (typeof network !== 'object') return console.error('network not found');
-    return network;
+  validateNetwork(network?: string | network): network {
+    if (typeof network === 'string') return fromNetworkString(network);
+    if (network) return network;
+    if (this.network) return this.network;
+    throw new TypeError('network not found');
   }
 
-  async generate(password: any, network: any) {
-    network = this.validateNetwork(network);
-    const mnemonic = await new Mnemonic().generate(512);
-    const seed = await new Mnemonic().seedFromMnemonic(mnemonic, password, 512);
-    this.hdnode = await new HdNode().fromSeed(new Uint8Array(seed), network);
+  async generate(
+    password = '',
+    network?: string | network,
+  ): Promise<string> {
+    const resolvedNetwork = this.validateNetwork(network);
+    const mnemonic = await new Mnemonic({}).generate(512);
+    const seed = await new Mnemonic({}).seedFromMnemonic(mnemonic, password, 512);
+    this.hdnode = await new HdNode().fromSeed(
+      new Uint8Array(seed),
+      resolvedNetwork,
+    );
     return mnemonic;
   }
 
   /**
    * recover using mnemonic (recovery word list)
    */
-  async recover(mnemonic: any, password: any, network: any) {
-    network = this.validateNetwork(network || password);
-    const seed = await new Mnemonic().seedFromMnemonic(mnemonic, password, 512);
-    let node = new HdNode();
-    node = await node.fromSeed(new Uint8Array(seed), network);
-    this.hdnode = await node.fromSeed(new Uint8Array(seed), network);
+  async recover(
+    mnemonic: string,
+    password = '',
+    network?: string | network,
+  ): Promise<void> {
+    const resolvedNetwork = this.validateNetwork(network);
+    const seed = await new Mnemonic({}).seedFromMnemonic(mnemonic, password, 512);
+    this.hdnode = await new HdNode().fromSeed(
+      new Uint8Array(seed),
+      resolvedNetwork,
+    );
   }
 
-  async load(base58: any, network: string | network) {
-    if (typeof network === 'string')
-      //@ts-ignore
-      network = this.validateNetwork(network) as network;
-    this.hdnode = await new HdNode().fromBase58(base58, network);
+  async load(encoded: string, network?: string | network): Promise<void> {
+    this.hdnode = await new HdNode().fromBase58(
+      encoded,
+      this.validateNetwork(network),
+    );
   }
 
-  save() {
+  save(): Promise<string> {
     return this.hdnode.toBase58();
   }
 
   async fromAddress(
-    address: string | any[] | Uint8Array,
-    chainCode: any,
-    network: any
+    address: string | readonly number[] | Uint8Array,
+    chainCode: Uint8Array | undefined,
+    network?: string | network,
   ): Promise<void> {
-    network = this.validateNetwork(network);
-    address = (await base58check.decode(address)).data;
-    if (!chainCode || (chainCode && !Buffer.isBuffer(chainCode)))
-      chainCode = address.slice(1);
-    this.hdnode = await new HdNode().fromPublicKey(address, chainCode, network);
+    const publicKey = typeof address === 'string'
+      ? (await base58check.decode(address)).data
+      : new Uint8Array(address);
+    this.hdnode = await new HdNode().fromPublicKey(
+      publicKey,
+      chainCode ?? publicKey.slice(1),
+      this.validateNetwork(network),
+    );
   }
 
   async fromPublicKey(
-    hex: string | any[] | Uint8Array,
-    chainCode: any,
-    network: string
+    publicKey: Uint8Array,
+    chainCode: Uint8Array | undefined,
+    network: string | network,
   ): Promise<this> {
-    network = this.validateNetwork(network);
-    if (!chainCode || chainCode) chainCode = hex.slice(1);
-    let node = new HdNode();
-    node = await node.fromPublicKey(hex, chainCode, network);
-    this.hdnode = node;
+    this.hdnode = await new HdNode().fromPublicKey(
+      publicKey,
+      chainCode ?? publicKey.slice(1),
+      this.validateNetwork(network),
+    );
     return this;
   }
 
   async fromPrivateKey(
     privateKey: Uint8Array,
     chainCode?: Uint8Array,
-    network?: network
-  ) {
+    network?: string | network,
+  ): Promise<void> {
     this.hdnode = await new HdNode().fromPrivateKey(
       privateKey,
       chainCode,
-      network
+      this.validateNetwork(network),
     );
   }
 }
