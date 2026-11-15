@@ -11,8 +11,9 @@ import networks from "./networks.js";
 import { createRIPEMD160, createHMAC, createSHA512 } from "hash-wasm";
 import { createHash } from "@leofcoin/crypto";
 import base58check from "@vandeurenglenn/base58check";
+import type { base58String } from "@vandeurenglenn/base58";
 import wif from "@leofcoin/wif";
-import { network } from "./index.js";
+import type { network } from "./index.js";
 const HIGHEST_BIT = 0x80000000;
 
 const privateKeyVerify = (privateKey: Uint8Array): boolean =>
