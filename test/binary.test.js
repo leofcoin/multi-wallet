@@ -176,10 +176,15 @@ test('saved wallet imports reject malformed private keys without changing state'
 
 test('generated mnemonics use 256-bit BIP39 entropy and validate', async () => {
   const wallet = new MultiWallet('leofcoin');
-  const mnemonic = await wallet.generate();
+  await assert.rejects(wallet.generate(), /passphrase is required/);
+  await assert.rejects(wallet.generate(''), /passphrase is required/);
+  const mnemonic = await wallet.generate('test BIP39 passphrase');
+  const generatedPrivateKey = wallet.privateKey.slice();
+  await wallet.recover(mnemonic, 'test BIP39 passphrase');
 
   assert.equal(mnemonic.split(' ').length, 24);
   assert.equal(validateMnemonic(mnemonic, wordlist), true);
+  assert.deepEqual(wallet.privateKey, generatedPrivateKey);
 });
 
 test('mnemonic recovery matches the official BIP39 seed vector', async () => {
@@ -192,6 +197,8 @@ test('mnemonic recovery matches the official BIP39 seed vector', async () => {
   );
 
   const wallet = new MultiWallet('bitcoin');
+  await assert.rejects(wallet.recover(mnemonic), /passphrase is required/);
+  await assert.rejects(wallet.recover(mnemonic, ''), /passphrase is required/);
   await wallet.recover(mnemonic, 'TREZOR');
   const expected = await new HdNode().fromSeed(
     seed,

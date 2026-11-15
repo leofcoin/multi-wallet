@@ -13,13 +13,13 @@ console.log = (...args) => {
 
 test("basic wallet functionality", async () => {
   const wallet = new MultiWallet("leofcoin");
-  const generated = await wallet.generate();
+  const generated = await wallet.generate("test BIP39 passphrase");
   assert.ok(generated, "generate wallet");
 });
 
 test("basic wallet functionality", async () => {
   const wallet = new MultiWallet("leofcoin:olivia");
-  const generated = await wallet.generate();
+  const generated = await wallet.generate("test BIP39 passphrase");
   assert.ok(generated, "generate wallet");
 });
 

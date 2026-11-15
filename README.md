@@ -58,8 +58,11 @@ TODO...
 
 Mnemonic generation uses the English BIP39 wordlist with 256 bits of entropy
 (24 words), and recovery validates the BIP39 checksum before deriving the
-standard BIP39 seed and BIP32 keys. The `password` argument to `generate()` and
-`recover()` is the BIP39 passphrase; it must be identical during recovery.
+standard BIP39 seed and BIP32 keys. `generate()` and `recover()` require an
+explicit, non-empty BIP39 passphrase; it must be identical during recovery.
+This is a breaking change in v5: phrases created with an empty passphrase by
+older versions cannot be recovered with the new API. Recover and back up those
+wallets using the previous release before upgrading.
 
 This changes mnemonic compatibility: phrases created by older versions may
 not be valid BIP39 and may derive different keys. Before upgrading, back up
@@ -92,7 +95,7 @@ wallet. No software wallet can honestly be guaranteed “unhackable.”
 import { PqWallet } from '@leofcoin/multi-wallet';
 
 const wallet = new PqWallet(0);
-const mnemonic = await wallet.generate(bip39Passphrase); // non-empty, high-entropy secret
+const mnemonic = await wallet.generate(bip39Passphrase); // required, high-entropy secret
 // Or recover with: await wallet.recover(mnemonic, bip39Passphrase)
 wallet.bindChainId(chainId); // required before signing on a validated PQ chain
 const signature = await wallet.sign(transactionDigest); // exactly 32 bytes

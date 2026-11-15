@@ -133,13 +133,14 @@ export default class HDWallet {
   }
 
   async generate(
-    password = '',
+    passphrase: string,
     network?: string | network,
   ): Promise<string> {
     this.assertUnlocked();
+    this.assertBip39Passphrase(passphrase);
     const resolvedNetwork = this.validateNetwork(network);
     const mnemonic = generateMnemonic(wordlist, 256);
-    const seed = await mnemonicToSeed(mnemonic, password);
+    const seed = await mnemonicToSeed(mnemonic, passphrase);
     this.hdnode = await new HdNode().fromSeed(
       seed,
       resolvedNetwork,
@@ -152,14 +153,15 @@ export default class HDWallet {
    */
   async recover(
     mnemonic: string,
-    password = '',
+    passphrase: string,
     network?: string | network,
   ): Promise<void> {
     this.assertUnlocked();
+    this.assertBip39Passphrase(passphrase);
     if (!validateMnemonic(mnemonic, wordlist))
       throw new TypeError('Invalid BIP39 mnemonic');
     const resolvedNetwork = this.validateNetwork(network);
-    const seed = await mnemonicToSeed(mnemonic, password);
+    const seed = await mnemonicToSeed(mnemonic, passphrase);
     this.hdnode = await new HdNode().fromSeed(
       seed,
       resolvedNetwork,
@@ -219,5 +221,12 @@ export default class HDWallet {
       chainCode,
       this.validateNetwork(network),
     );
+  }
+
+  private assertBip39Passphrase(
+    passphrase: unknown,
+  ): asserts passphrase is string {
+    if (typeof passphrase !== 'string' || passphrase.length === 0)
+      throw new TypeError('A non-empty BIP39 passphrase is required');
   }
 }
