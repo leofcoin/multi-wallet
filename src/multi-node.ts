@@ -9,6 +9,7 @@ import networks from "./networks.js";
 import { decrypt, encrypt } from "@leofcoin/identity-utils";
 import typedArraySmartConcat from "@vandeurenglenn/typed-array-smart-concat";
 import typedArraySmartDeconcat from "@vandeurenglenn/typed-array-smart-deconcat";
+import { assertPasswordLength } from "./password.js";
 import type { network } from "./index.js";
 
 class MultiHDNode extends HDWallet {
@@ -49,6 +50,7 @@ class MultiHDNode extends HDWallet {
   }
 
   async import(password: string, encrypted: string): Promise<void> {
+    assertPasswordLength(password, "Wallet password");
     this.assertUnlocked();
     const { data } = await base58check.decode(encrypted);
     const decrypted = await decrypt(password, data);
@@ -56,10 +58,12 @@ class MultiHDNode extends HDWallet {
   }
 
   async export(password: string): Promise<string> {
+    assertPasswordLength(password, "Wallet password");
     return base58check.encode(await encrypt(password, await this.toMultiWif()));
   }
 
   async lock(password: string): Promise<void> {
+    assertPasswordLength(password, "Wallet password");
     if (this.locked) return;
     const node = this.hdnode;
     const encrypted = await this.export(password);
@@ -71,6 +75,7 @@ class MultiHDNode extends HDWallet {
   }
 
   async unlock(password: string): Promise<void> {
+    assertPasswordLength(password, "Wallet password");
     if (!this.locked || !this.#encrypted)
       throw new Error("Wallet is not locked");
     const { data } = await base58check.decode(this.#encrypted);

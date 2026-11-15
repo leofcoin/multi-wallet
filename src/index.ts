@@ -96,3 +96,8 @@ export {
   PQ_SCHEME,
   PQ_SIGNATURE_BYTES,
 } from './pq-wallet.js';
+export {
+  DEFAULT_SECURE_PASSWORD_LENGTH,
+  generateSecurePassword,
+  MIN_PASSWORD_LENGTH,
+} from './password.js';

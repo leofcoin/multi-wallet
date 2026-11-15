@@ -85,17 +85,17 @@ for (const key of Object.keys(config)) {
 
     hdnode = new MultiWallet(key);
     await hdnode.fromMultiWif(multiWIF);
-    const exported = await hdnode.export("");
+    const exported = await hdnode.export("test wallet password");
     hdnode = new MultiWallet(key);
-    await hdnode.import("", exported);
+    await hdnode.import("test wallet password", exported);
     assert.deepEqual(await hdnode.multiWIF, multiWIF, "export");
 
     hdnode = new MultiWallet(key);
     await hdnode.fromMultiWif(multiWIF);
-    await hdnode.lock("");
+    await hdnode.lock("test wallet password");
     assert.ok(!hdnode.privateKey, "lock");
 
-    await hdnode.unlock("");
+    await hdnode.unlock("test wallet password");
     assert.equal(await hdnode.multiWIF, multiWIF, "unlock");
 
     assert.equal(await hdnode.id, id, "id");

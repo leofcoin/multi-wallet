@@ -9,7 +9,11 @@ import multiWif from '@leofcoin/multi-wif';
 import { mnemonicToSeed, validateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import HdNode from '../exports/hd-node.js';
-import MultiWallet from '../exports/index.js';
+import MultiWallet, {
+  DEFAULT_SECURE_PASSWORD_LENGTH,
+  generateSecurePassword,
+  MIN_PASSWORD_LENGTH,
+} from '../exports/index.js';
 import config from './config.js';
 
 test('existing wallet IDs import as watch-only wallets without changing their bytes', async () => {
@@ -83,7 +87,8 @@ test('locking clears in-memory private-key material and restores it only after u
   const privateKey = originalNode.privateKey;
   const expectedPrivateKey = privateKey.slice();
 
-  await wallet.lock('');
+  await assert.rejects(wallet.lock('short'), /at least 12/);
+  await wallet.lock('correct horse battery staple');
 
   assert.ok(privateKey.every((byte) => byte === 0));
   assert.equal(originalNode.privateKey, undefined);
@@ -95,7 +100,7 @@ test('locking clears in-memory private-key material and restores it only after u
   await saved.load(await wallet.save(), 'leofcoin');
   assert.equal(saved.privateKey, undefined);
 
-  await assert.rejects(wallet.unlock('wrong password'));
+  await assert.rejects(wallet.unlock('incorrect but sufficiently long'));
   assert.equal(wallet.locked, true);
   assert.equal(wallet.hdnode.privateKey, undefined);
   assert.equal(wallet.privateKey, undefined);
@@ -104,7 +109,7 @@ test('locking clears in-memory private-key material and restores it only after u
     wallet.hdnode = originalNode;
   }, /locked/);
 
-  await wallet.unlock('');
+  await wallet.unlock('correct horse battery staple');
   assert.deepEqual(wallet.privateKey, expectedPrivateKey);
   assert.equal(wallet.locked, false);
 });
@@ -176,11 +181,14 @@ test('saved wallet imports reject malformed private keys without changing state'
 
 test('generated mnemonics use 256-bit BIP39 entropy and validate', async () => {
   const wallet = new MultiWallet('leofcoin');
-  await assert.rejects(wallet.generate(), /passphrase is required/);
-  await assert.rejects(wallet.generate(''), /passphrase is required/);
-  const mnemonic = await wallet.generate('test BIP39 passphrase');
+  await assert.rejects(wallet.generate(), /at least 12/);
+  await assert.rejects(wallet.generate(''), /at least 12/);
+  await assert.rejects(wallet.generate('short'), /at least 12/);
+  await assert.rejects(wallet.generate('A1b2-C3d4_E'), /at least 12/);
+  const passphrase = 'A1b2-C3d4_E5';
+  const mnemonic = await wallet.generate(passphrase);
   const generatedPrivateKey = wallet.privateKey.slice();
-  await wallet.recover(mnemonic, 'test BIP39 passphrase');
+  await wallet.recover(mnemonic, passphrase);
 
   assert.equal(mnemonic.split(' ').length, 24);
   assert.equal(validateMnemonic(mnemonic, wordlist), true);
@@ -197,11 +205,14 @@ test('mnemonic recovery matches the official BIP39 seed vector', async () => {
   );
 
   const wallet = new MultiWallet('bitcoin');
-  await assert.rejects(wallet.recover(mnemonic), /passphrase is required/);
-  await assert.rejects(wallet.recover(mnemonic, ''), /passphrase is required/);
-  await wallet.recover(mnemonic, 'TREZOR');
+  const walletPassphrase = 'TREZOR passphrase';
+  await assert.rejects(wallet.recover(mnemonic), /at least 12/);
+  await assert.rejects(wallet.recover(mnemonic, ''), /at least 12/);
+  await assert.rejects(wallet.recover(mnemonic, 'TREZOR'), /at least 12/);
+  await wallet.recover(mnemonic, walletPassphrase);
+  const walletSeed = await mnemonicToSeed(mnemonic, walletPassphrase);
   const expected = await new HdNode().fromSeed(
-    seed,
+    walletSeed,
     wallet.network,
   );
   assert.deepEqual(wallet.privateKey, expected.privateKey);
@@ -211,7 +222,7 @@ test('mnemonic recovery matches the official BIP39 seed vector', async () => {
   await assert.rejects(
     wallet.recover(
       'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon',
-      'TREZOR',
+      walletPassphrase,
     ),
     /Invalid BIP39 mnemonic/,
   );
@@ -264,7 +275,7 @@ test('BIP32 chain codes survive MultiWIF and encrypted wallet exports', async ()
   const wallet = new MultiWallet('leofcoin');
   await wallet.recover(
     'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-    'TREZOR',
+    'test BIP39 passphrase',
     'leofcoin',
   );
   const chainCode = wallet.hdnode.chainCode;
@@ -284,10 +295,27 @@ test('BIP32 chain codes survive MultiWIF and encrypted wallet exports', async ()
     (await wallet.hdnode.derive(3)).publicKey,
   );
 
-  const encrypted = await wallet.export('');
+  await assert.rejects(wallet.export('short'), /at least 12/);
+  const encrypted = await wallet.export('test wallet password');
   const restoredFromEncrypted = new MultiWallet('leofcoin');
-  await restoredFromEncrypted.import('', encrypted);
+  await assert.rejects(
+    restoredFromEncrypted.import('short', encrypted),
+    /at least 12/,
+  );
+  await restoredFromEncrypted.import('test wallet password', encrypted);
   assert.deepEqual(restoredFromEncrypted.hdnode.chainCode, chainCode);
+});
+
+test('secure password generator returns passwords that meet the wallet minimum', () => {
+  const password = generateSecurePassword();
+  assert.equal(Array.from(password).length, DEFAULT_SECURE_PASSWORD_LENGTH);
+  assert.match(password, /^[A-Za-z0-9_-]+$/);
+  assert.equal(Array.from(generateSecurePassword(16)).length, 16);
+  assert.throws(
+    () => generateSecurePassword(MIN_PASSWORD_LENGTH - 1),
+    /between 12 and 1024/,
+  );
+  assert.throws(() => generateSecurePassword(12.5), /between 12 and 1024/);
 });
 
 test('MultiWIF import rejects unknown network codecs without changing the wallet', async () => {

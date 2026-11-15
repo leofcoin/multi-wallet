@@ -10,6 +10,7 @@ import {
   validateMnemonic,
 } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
+import { assertPasswordLength } from "./password.js";
 
 export const PQ_NETWORK = "leofcoin:pq";
 export const PQ_SCHEME = "ML-DSA-87:v1";
@@ -73,13 +74,11 @@ function assertAccountIndex(value: number): void {
 }
 
 function assertBackupPassword(password: unknown): asserts password is string {
-  if (typeof password !== "string" || password.length === 0)
-    throw new TypeError("Backup password must be a non-empty string");
+  assertPasswordLength(password, "Backup password");
 }
 
 function assertBip39Passphrase(passphrase: unknown): asserts passphrase is string {
-  if (typeof passphrase !== "string" || passphrase.length === 0)
-    throw new TypeError("A non-empty BIP39 passphrase is required for PQ wallets");
+  assertPasswordLength(passphrase, "BIP39 passphrase");
 }
 
 function publicKeyAddress(publicKey: Uint8Array): string {

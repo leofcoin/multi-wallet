@@ -51,8 +51,9 @@ test("PQ wallet derives the same account keys and identifiers as the chain schem
 
 test("PQ wallet uses 24-word BIP39 recovery and chain-bound ML-DSA signatures", async () => {
   const wallet = new PqWallet(3);
-  await assert.rejects(wallet.generate(), /passphrase is required/);
-  await assert.rejects(wallet.generate(""), /passphrase is required/);
+  await assert.rejects(wallet.generate(), /at least 12/);
+  await assert.rejects(wallet.generate(""), /at least 12/);
+  await assert.rejects(wallet.generate("short"), /at least 12/);
   const bip39Passphrase = "bip39-passphrase";
   const mnemonic = await wallet.generate(bip39Passphrase);
   assert.equal(mnemonic.split(" ").length, 24);
@@ -63,7 +64,7 @@ test("PQ wallet uses 24-word BIP39 recovery and chain-bound ML-DSA signatures", 
   try {
     await assert.rejects(
       recovered.recover(mnemonic, ""),
-      /passphrase is required/,
+      /at least 12/,
     );
     await recovered.recover(mnemonic, bip39Passphrase);
     assert.equal(recovered.selectedAccount, wallet.selectedAccount);
@@ -114,9 +115,9 @@ test("encrypted PQ backups round-trip account indices and locking clears signing
   const bip39Passphrase = "separate-bip39-passphrase";
   await wallet.generate(bip39Passphrase);
   const account = wallet.selectedAccount;
-  await assert.rejects(wallet.export(""), /non-empty/);
-  await assert.rejects(wallet.export(undefined), /non-empty/);
-  await assert.rejects(wallet.lock(""), /non-empty/);
+  await assert.rejects(wallet.export("short"), /at least 12/);
+  await assert.rejects(wallet.export(undefined), /at least 12/);
+  await assert.rejects(wallet.lock("short"), /at least 12/);
   assert.equal(wallet.locked, false);
   const backup = await wallet.export("correct horse battery staple");
   const restored = new PqWallet();
@@ -125,19 +126,20 @@ test("encrypted PQ backups round-trip account indices and locking clears signing
     assert.equal(restored.accountIndex, 11);
     assert.equal(restored.selectedAccount, account);
     await assert.rejects(
-      restored.import("wrong password", backup),
+      restored.import("incorrect but sufficiently long", backup),
     );
-    await assert.rejects(restored.import("", backup), /non-empty/);
+    await assert.rejects(restored.import("short", backup), /at least 12/);
     assert.equal(restored.selectedAccount, account);
     restored.bindChainId(chainId);
     await restored.lock("correct horse battery staple");
     assert.equal(restored.selectedAccount, account);
     await assert.rejects(restored.sign(new Uint8Array(32)), /live private key/);
-    await assert.rejects(restored.unlock("wrong password"));
+    await assert.rejects(restored.unlock("short"), /at least 12/);
+    await assert.rejects(restored.unlock("incorrect but sufficiently long"));
     await restored.load("correct horse battery staple");
     assert.equal(restored.locked, false);
     assert.equal(restored.selectedAccount, account);
-    await assert.rejects(restored.generate(), /passphrase is required/);
+    await assert.rejects(restored.generate(), /at least 12/);
     assert.equal((await restored.generate(bip39Passphrase)).split(" ").length, 24);
     await assert.rejects(restored.load(undefined, true), /explicitly generated/);
   } finally {

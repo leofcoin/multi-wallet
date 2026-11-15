@@ -5,6 +5,7 @@ import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { createKeccak } from 'hash-wasm';
 import { Point } from '@noble/secp256k1';
 import networks from './networks.js';
+import { assertPasswordLength } from './password.js';
 import type { network } from './index.js';
 
 const isNetwork = (value: unknown): value is network =>
@@ -137,7 +138,7 @@ export default class HDWallet {
     network?: string | network,
   ): Promise<string> {
     this.assertUnlocked();
-    this.assertBip39Passphrase(passphrase);
+    assertPasswordLength(passphrase, 'BIP39 passphrase');
     const resolvedNetwork = this.validateNetwork(network);
     const mnemonic = generateMnemonic(wordlist, 256);
     const seed = await mnemonicToSeed(mnemonic, passphrase);
@@ -157,7 +158,7 @@ export default class HDWallet {
     network?: string | network,
   ): Promise<void> {
     this.assertUnlocked();
-    this.assertBip39Passphrase(passphrase);
+    assertPasswordLength(passphrase, 'BIP39 passphrase');
     if (!validateMnemonic(mnemonic, wordlist))
       throw new TypeError('Invalid BIP39 mnemonic');
     const resolvedNetwork = this.validateNetwork(network);
@@ -221,12 +222,5 @@ export default class HDWallet {
       chainCode,
       this.validateNetwork(network),
     );
-  }
-
-  private assertBip39Passphrase(
-    passphrase: unknown,
-  ): asserts passphrase is string {
-    if (typeof passphrase !== 'string' || passphrase.length === 0)
-      throw new TypeError('A non-empty BIP39 passphrase is required');
   }
 }
