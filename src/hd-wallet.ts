@@ -5,6 +5,7 @@ import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { createKeccak } from 'hash-wasm';
 import { Point } from '@noble/secp256k1';
 import networks from './networks.js';
+import { assertPasswordLength } from './password.js';
 import type { network } from './index.js';
 
 const isNetwork = (value: unknown): value is network =>
@@ -133,13 +134,14 @@ export default class HDWallet {
   }
 
   async generate(
-    password = '',
+    passphrase: string,
     network?: string | network,
   ): Promise<string> {
     this.assertUnlocked();
+    assertPasswordLength(passphrase, 'BIP39 passphrase');
     const resolvedNetwork = this.validateNetwork(network);
     const mnemonic = generateMnemonic(wordlist, 256);
-    const seed = await mnemonicToSeed(mnemonic, password);
+    const seed = await mnemonicToSeed(mnemonic, passphrase);
     this.hdnode = await new HdNode().fromSeed(
       seed,
       resolvedNetwork,
@@ -152,14 +154,15 @@ export default class HDWallet {
    */
   async recover(
     mnemonic: string,
-    password = '',
+    passphrase: string,
     network?: string | network,
   ): Promise<void> {
     this.assertUnlocked();
+    assertPasswordLength(passphrase, 'BIP39 passphrase');
     if (!validateMnemonic(mnemonic, wordlist))
       throw new TypeError('Invalid BIP39 mnemonic');
     const resolvedNetwork = this.validateNetwork(network);
-    const seed = await mnemonicToSeed(mnemonic, password);
+    const seed = await mnemonicToSeed(mnemonic, passphrase);
     this.hdnode = await new HdNode().fromSeed(
       seed,
       resolvedNetwork,
