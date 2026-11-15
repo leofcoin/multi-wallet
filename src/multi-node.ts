@@ -120,11 +120,15 @@ class MultiHDNode extends HDWallet {
         supported.multiCodec === codec ||
         supported.testnet?.multiCodec === codec,
     );
-    const network =
+    const decodedNetwork =
       candidate?.multiCodec === codec ? candidate : candidate?.testnet;
 
-    if (!network) throw new Error("invalid codec");
-    if (version !== network.version) throw new Error("invalid version");
+    if (!decodedNetwork) throw new Error("invalid codec");
+    if (version !== decodedNetwork.version) throw new Error("invalid version");
+    const network =
+      this.network.multiCodec === codec && this.network.version === version
+        ? this.network
+        : decodedNetwork;
     return { network, privateKey, chainCode };
   }
 

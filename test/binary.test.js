@@ -318,6 +318,37 @@ test('secure password generator returns passwords that meet the wallet minimum',
   assert.throws(() => generateSecurePassword(12.5), /between 12 and 1024/);
 });
 
+test('named network derivation survives MultiWIF, encrypted import and lock/unlock', async () => {
+  for (const network of ['leofcoin:peach', 'leofcoin:mainnet']) {
+    const wallet = new MultiWallet(network);
+    await wallet.generate('test passphrase');
+    const address = await (await wallet.account(1).external(1)).address;
+    const multiWifValue = await wallet.toMultiWif();
+    const encrypted = await wallet.export('test password');
+
+    const raw = new MultiWallet(network);
+    await raw.fromMultiWif(multiWifValue);
+    assert.equal(raw.network.coin_type, 1);
+    assert.equal(await (await raw.account(1).external(1)).address, address);
+
+    const restored = new MultiWallet(network);
+    await restored.import('test password', encrypted);
+    assert.equal(await (await restored.account(1).external(1)).address, address);
+    await restored.lock('test password');
+    await restored.unlock('test password');
+    assert.equal(await (await restored.account(1).external(1)).address, address);
+  }
+});
+
+test('MultiWIF with a different codec uses its encoded network', async () => {
+  const ethereum = new MultiWallet('ethereum');
+  await ethereum.generate('test BIP39 passphrase');
+  const restored = new MultiWallet('leofcoin:peach');
+  await restored.fromMultiWif(await ethereum.toMultiWif());
+  assert.equal(restored.network.multiCodec, ethereum.network.multiCodec);
+  assert.equal(restored.network.coin_type, ethereum.network.coin_type);
+});
+
 test('MultiWIF import rejects unknown network codecs without changing the wallet', async () => {
   const wallet = new MultiWallet('leofcoin');
   await wallet.load(config.leofcoin.bs58, 'leofcoin');

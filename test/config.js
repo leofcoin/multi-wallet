@@ -20,6 +20,7 @@ export default {
   },
   'leofcoin:peach': {
     ...defaultConfig,
+    address: 'YTqwd6ZWN39bxB7z6tuJrwvPKAX38kEzmZTVz1C8zdXUU1raC8udP',
   },
   ethereum: {
     ...defaultConfig,
@@ -33,6 +34,6 @@ export default {
     bs58: '2iF1MDW8JiZjT8ApgGEB5WC74NUDzsuGsPhs3xur2UUSuDZQJrDG6bCFv58j8jnNkZMVXwcc6i23uRGPMEuQDFqUpLo9NeUEqZUZbp8yVVFnuJiGsikonwHGMp',
     publicKey:
       '027d0711e03fd2f64afe5b797c802cc90d82750bd40ff3863684e738feed812d9a',
-    address: '0x4998d3437d43303c1b0e7fc215c68468e8d980d9',
+    address: '0x28c26cde4d82020086f932fa7149bfa10bdbf032',
   },
 };
