@@ -2,8 +2,8 @@ import { ml_dsa87 } from "@noble/post-quantum/ml-dsa.js";
 import { hkdf } from "@noble/hashes/hkdf.js";
 import { sha256, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
+import { scryptAsync } from "@noble/hashes/scrypt.js";
 import base58check from "@vandeurenglenn/base58check";
-import { decrypt, encrypt } from "@leofcoin/identity-utils";
 import {
   generateMnemonic,
   mnemonicToSeed,
@@ -19,8 +19,45 @@ export const PQ_SIGNATURE_BYTES = 4627;
 
 const BACKUP_FORMAT = "leofcoin:pq-wallet";
 const BACKUP_VERSION = 1;
+const BACKUP_MAGIC = new TextEncoder().encode("LFPQ");
+const BACKUP_ENVELOPE_VERSION = 2;
+const BACKUP_SALT_LENGTH = 16;
+const BACKUP_IV_LENGTH = 12;
+const BACKUP_HEADER_LENGTH = BACKUP_MAGIC.length + 1;
+const BACKUP_CIPHERTEXT_MIN_LENGTH = 16;
 const KDF_SALT = "leofcoin:ML-DSA-87:v1";
 const utf8 = new TextEncoder();
+const backupKdfOptions = {
+  N: 2 ** 15,
+  r: 8,
+  p: 1,
+  dkLen: 32,
+  maxmem: 64 * 1024 * 1024,
+};
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.length);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
+async function importAesKey(
+  keyBytes: Uint8Array,
+  usage: KeyUsage[],
+): Promise<CryptoKey> {
+  const rawKey = toArrayBuffer(keyBytes);
+  try {
+    return await globalThis.crypto.subtle.importKey(
+      "raw",
+      rawKey,
+      { name: "AES-GCM" },
+      false,
+      usage,
+    );
+  } finally {
+    new Uint8Array(rawKey).fill(0);
+  }
+}
 
 type WalletBackup = {
   format: typeof BACKUP_FORMAT;
@@ -79,6 +116,101 @@ function parseBackup(value: string): WalletBackup {
     throw new TypeError("Invalid PQ wallet backup");
 
   return { ...record, seed: hexToBytes(record.seed) } as WalletBackup;
+}
+
+async function encryptBackup(password: string, payload: string): Promise<string> {
+  const passwordBytes = utf8.encode(password);
+  let payloadBytes: Uint8Array | undefined;
+  let keyBytes: Uint8Array | undefined;
+  try {
+    const salt = new Uint8Array(BACKUP_SALT_LENGTH);
+    const iv = new Uint8Array(BACKUP_IV_LENGTH);
+    globalThis.crypto.getRandomValues(salt);
+    globalThis.crypto.getRandomValues(iv);
+    const header = new Uint8Array(BACKUP_HEADER_LENGTH);
+    header.set(BACKUP_MAGIC);
+    header[BACKUP_MAGIC.length] = BACKUP_ENVELOPE_VERSION;
+    payloadBytes = utf8.encode(payload);
+    keyBytes = await scryptAsync(passwordBytes, salt, backupKdfOptions);
+    const key = await importAesKey(keyBytes, ["encrypt"]);
+    const plaintext = toArrayBuffer(payloadBytes);
+    let encrypted: ArrayBuffer;
+    try {
+      encrypted = await globalThis.crypto.subtle.encrypt(
+        {
+          name: "AES-GCM",
+          iv: toArrayBuffer(iv),
+          additionalData: toArrayBuffer(header),
+        },
+        key,
+        plaintext,
+      );
+    } finally {
+      new Uint8Array(plaintext).fill(0);
+    }
+    const ciphertext = new Uint8Array(
+      encrypted,
+    );
+    const envelope = new Uint8Array(
+      header.length + salt.length + iv.length + ciphertext.length,
+    );
+    envelope.set(header);
+    envelope.set(salt, header.length);
+    envelope.set(iv, header.length + salt.length);
+    envelope.set(ciphertext, header.length + salt.length + iv.length);
+    ciphertext.fill(0);
+    return base58check.encode(envelope);
+  } finally {
+    passwordBytes.fill(0);
+    payloadBytes?.fill(0);
+    keyBytes?.fill(0);
+  }
+}
+
+async function decryptBackup(password: string, encoded: string): Promise<string> {
+  const { data } = await base58check.decode(encoded);
+  const minimumLength =
+    BACKUP_HEADER_LENGTH +
+    BACKUP_SALT_LENGTH +
+    BACKUP_IV_LENGTH +
+    BACKUP_CIPHERTEXT_MIN_LENGTH;
+  if (
+    data.length < minimumLength ||
+    !BACKUP_MAGIC.every((byte, index) => data[index] === byte) ||
+    data[BACKUP_MAGIC.length] !== BACKUP_ENVELOPE_VERSION
+  )
+    throw new TypeError("Invalid PQ wallet backup envelope");
+
+  const saltStart = BACKUP_HEADER_LENGTH;
+  const ivStart = saltStart + BACKUP_SALT_LENGTH;
+  const ciphertextStart = ivStart + BACKUP_IV_LENGTH;
+  const header = data.slice(0, BACKUP_HEADER_LENGTH);
+  const salt = data.slice(saltStart, ivStart);
+  const iv = data.slice(ivStart, ciphertextStart);
+  const ciphertext = data.slice(ciphertextStart);
+  const passwordBytes = utf8.encode(password);
+  let keyBytes: Uint8Array | undefined;
+  let plaintext: Uint8Array | undefined;
+  try {
+    keyBytes = await scryptAsync(passwordBytes, salt, backupKdfOptions);
+    const key = await importAesKey(keyBytes, ["decrypt"]);
+    plaintext = new Uint8Array(
+      await globalThis.crypto.subtle.decrypt(
+        {
+          name: "AES-GCM",
+          iv: toArrayBuffer(iv),
+          additionalData: toArrayBuffer(header),
+        },
+        key,
+        toArrayBuffer(ciphertext),
+      ),
+    );
+    return new TextDecoder("utf-8", { fatal: true }).decode(plaintext);
+  } finally {
+    passwordBytes.fill(0);
+    keyBytes?.fill(0);
+    plaintext?.fill(0);
+  }
 }
 
 /** BIP39-backed ML-DSA-87 wallet for the experimental leofcoin:pq network. */
@@ -209,7 +341,7 @@ export default class PqWallet {
       accountIndex: this.#accountIndex,
       seed: bytesToHex(this.#seed),
     });
-    return base58check.encode(await encrypt(password, payload));
+    return encryptBackup(password, payload);
   }
 
   async import(password: string, encrypted: string): Promise<void> {
@@ -278,8 +410,7 @@ export default class PqWallet {
   }
 
   async #restore(password: string, encrypted: string): Promise<void> {
-    const { data } = await base58check.decode(encrypted);
-    const payload = await decrypt(password, data);
+    const payload = await decryptBackup(password, encrypted);
     const backup = parseBackup(payload);
     try {
       this.#installSeed(backup.seed, backup.accountIndex);

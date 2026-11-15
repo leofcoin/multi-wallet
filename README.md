@@ -80,6 +80,14 @@ seed using HKDF-SHA512, with account indices encoded as canonical decimal
 values. It uses the same derivation and chain-bound signing context as the
 Leofcoin private-chain prototype.
 
+A generated 24-word BIP39 mnemonic contains 256 bits of cryptographically
+random entropy plus a checksum, so exhaustive search is infeasible when it is
+generated normally and kept secret. The mnemonic itself is a bearer secret:
+anyone who obtains it can recover the wallet. Never choose words yourself or
+store the phrase in an online account. A BIP39 passphrase is optional, but if
+used it must also be backed up exactly; forgetting it derives a different
+wallet. No software wallet can honestly be guaranteed “unhackable.”
+
 ```js
 import { PqWallet } from '@leofcoin/multi-wallet';
 
@@ -93,7 +101,9 @@ const encryptedBackup = await wallet.export(walletPassword);
 
 The passphrase passed to `generate()` or `recover()` is the BIP39 passphrase;
 the non-empty password passed to `export()`, `import()`, `lock()`, or `unlock()`
-protects the encrypted backup. Keep both distinct. `PqWallet` does not replace the
+protects the encrypted backup using scrypt (N=2^15, r=8, p=1) and AES-256-GCM.
+Use a unique, high-entropy password; a non-empty but weak password is still
+guessable. Keep both passphrases distinct. `PqWallet` does not replace the
 existing BIP32/secp256k1 `MultiWallet` and is not compatible with classical
 networks. It is experimental: wallet-side signatures alone do not make a
 network quantum-resistant, and the PQ chain prototype is not a mainnet or
