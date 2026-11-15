@@ -51,17 +51,24 @@ test("PQ wallet derives the same account keys and identifiers as the chain schem
 
 test("PQ wallet uses 24-word BIP39 recovery and chain-bound ML-DSA signatures", async () => {
   const wallet = new PqWallet(3);
-  const mnemonic = await wallet.generate("bip39-passphrase");
+  await assert.rejects(wallet.generate(), /passphrase is required/);
+  await assert.rejects(wallet.generate(""), /passphrase is required/);
+  const bip39Passphrase = "bip39-passphrase";
+  const mnemonic = await wallet.generate(bip39Passphrase);
   assert.equal(mnemonic.split(" ").length, 24);
   assert.equal(validateMnemonic(mnemonic, wordlist), true);
 
   const seed = await mnemonicToSeed(mnemonic, "bip39-passphrase");
   const recovered = new PqWallet(3);
   try {
-    await recovered.recover(mnemonic, "bip39-passphrase");
+    await assert.rejects(
+      recovered.recover(mnemonic, ""),
+      /passphrase is required/,
+    );
+    await recovered.recover(mnemonic, bip39Passphrase);
     assert.equal(recovered.selectedAccount, wallet.selectedAccount);
     await assert.rejects(
-      recovered.recover("abandon ".repeat(11) + "abandon", "bip39-passphrase"),
+      recovered.recover("abandon ".repeat(11) + "abandon", bip39Passphrase),
       /Invalid BIP39 mnemonic/,
     );
     recovered.bindChainId(chainId);
@@ -104,7 +111,8 @@ test("PQ wallet uses 24-word BIP39 recovery and chain-bound ML-DSA signatures", 
 
 test("encrypted PQ backups round-trip account indices and locking clears signing access", async () => {
   const wallet = new PqWallet(11);
-  await wallet.generate();
+  const bip39Passphrase = "separate-bip39-passphrase";
+  await wallet.generate(bip39Passphrase);
   const account = wallet.selectedAccount;
   await assert.rejects(wallet.export(""), /non-empty/);
   await assert.rejects(wallet.export(undefined), /non-empty/);
@@ -129,7 +137,8 @@ test("encrypted PQ backups round-trip account indices and locking clears signing
     await restored.load("correct horse battery staple");
     assert.equal(restored.locked, false);
     assert.equal(restored.selectedAccount, account);
-    assert.equal((await restored.generate()).split(" ").length, 24);
+    await assert.rejects(restored.generate(), /passphrase is required/);
+    assert.equal((await restored.generate(bip39Passphrase)).split(" ").length, 24);
     await assert.rejects(restored.load(undefined, true), /explicitly generated/);
   } finally {
     wallet.destroy();

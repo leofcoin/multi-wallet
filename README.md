@@ -92,18 +92,23 @@ wallet. No software wallet can honestly be guaranteed “unhackable.”
 import { PqWallet } from '@leofcoin/multi-wallet';
 
 const wallet = new PqWallet(0);
-const mnemonic = await wallet.generate(); // 24 words; store this recovery phrase securely
+const mnemonic = await wallet.generate(bip39Passphrase); // non-empty, high-entropy secret
 // Or recover with: await wallet.recover(mnemonic, bip39Passphrase)
 wallet.bindChainId(chainId); // required before signing on a validated PQ chain
 const signature = await wallet.sign(transactionDigest); // exactly 32 bytes
 const encryptedBackup = await wallet.export(walletPassword);
 ```
 
-The passphrase passed to `generate()` or `recover()` is the BIP39 passphrase;
-the non-empty password passed to `export()`, `import()`, `lock()`, or `unlock()`
-protects the encrypted backup using scrypt (N=2^15, r=8, p=1) and AES-256-GCM.
-Use a unique, high-entropy password; a non-empty but weak password is still
-guessable. Keep both passphrases distinct. `PqWallet` does not replace the
+Unlike the classical wallet, `PqWallet` rejects omitted or empty BIP39
+passphrases during generation and mnemonic recovery. Use a high-entropy secret
+and store it separately from the mnemonic; losing it means the mnemonic alone
+derives a different wallet. An encrypted seed backup can still restore the
+wallet with its separate backup password.
+
+The password passed to `export()`, `import()`, `lock()`, or `unlock()` protects
+the encrypted backup using scrypt (N=2^15, r=8, p=1) and AES-256-GCM. Use a
+unique, high-entropy password; a non-empty but weak password is still
+guessable. Keep it distinct from the BIP39 passphrase. `PqWallet` does not replace the
 existing BIP32/secp256k1 `MultiWallet` and is not compatible with classical
 networks. It is experimental: wallet-side signatures alone do not make a
 network quantum-resistant, and the PQ chain prototype is not a mainnet or

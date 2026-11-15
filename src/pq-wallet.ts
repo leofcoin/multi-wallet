@@ -77,6 +77,11 @@ function assertBackupPassword(password: unknown): asserts password is string {
     throw new TypeError("Backup password must be a non-empty string");
 }
 
+function assertBip39Passphrase(passphrase: unknown): asserts passphrase is string {
+  if (typeof passphrase !== "string" || passphrase.length === 0)
+    throw new TypeError("A non-empty BIP39 passphrase is required for PQ wallets");
+}
+
 function publicKeyAddress(publicKey: Uint8Array): string {
   if (publicKey.length !== PQ_PUBLIC_KEY_BYTES)
     throw new TypeError("Invalid ML-DSA-87 public key length");
@@ -271,8 +276,9 @@ export default class PqWallet {
     return this.accounts;
   }
 
-  async generate(passphrase = ""): Promise<string> {
+  async generate(passphrase: string): Promise<string> {
     this.#assertUnlocked();
+    assertBip39Passphrase(passphrase);
     const mnemonic = generateMnemonic(wordlist, 256);
     const seed = await mnemonicToSeed(mnemonic, passphrase);
     try {
@@ -283,8 +289,9 @@ export default class PqWallet {
     return mnemonic;
   }
 
-  async recover(mnemonic: string, passphrase = ""): Promise<void> {
+  async recover(mnemonic: string, passphrase: string): Promise<void> {
     this.#assertUnlocked();
+    assertBip39Passphrase(passphrase);
     if (!validateMnemonic(mnemonic, wordlist))
       throw new TypeError("Invalid BIP39 mnemonic");
     const seed = await mnemonicToSeed(mnemonic, passphrase);
