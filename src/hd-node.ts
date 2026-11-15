@@ -2,7 +2,6 @@ import {
   Point,
   etc,
   getPublicKey,
-  getSharedSecret,
   utils,
 } from "@noble/secp256k1";
 import typedArraySmartConcat from "@vandeurenglenn/typed-array-smart-concat";
@@ -43,17 +42,6 @@ const privateKeyTweakAdd = (
   return padded;
 };
 
-const ecdh = (
-  publicKey: Uint8Array,
-  privateKey: Uint8Array,
-): Uint8Array | null => {
-  try {
-    return getSharedSecret(privateKey, publicKey, true);
-  } catch {
-    return null;
-  }
-};
-
 export default class HdNode {
   #privateKey!: Uint8Array | undefined;
   #publicKey!: Uint8Array | undefined;
@@ -72,7 +60,7 @@ export default class HdNode {
     index = 0,
     parentFingerprint = 0x00000000,
   ) {
-    this.init(
+    this.#initialize(
       privateKey,
       publicKey,
       chainCode,
@@ -83,7 +71,7 @@ export default class HdNode {
     );
   }
 
-  init(
+  #initialize(
     privateKey?: Uint8Array,
     publicKey?: Uint8Array,
     chainCode?: Uint8Array,
@@ -117,6 +105,10 @@ export default class HdNode {
     return this.#privateKey;
   }
 
+  get chainCode(): Uint8Array | undefined {
+    return this.#chainCode?.slice();
+  }
+
   get depth(): number {
     return this.#depth;
   }
@@ -142,8 +134,8 @@ export default class HdNode {
   get neutered(): HdNode {
     return new HdNode(
       undefined,
-      this.#publicKey,
-      this.#chainCode,
+      this.publicKey.slice(),
+      this.#chainCode?.slice(),
       this.#network,
       this.#depth,
       this.#index,
@@ -153,14 +145,21 @@ export default class HdNode {
 
   fromPrivateKey(
     privateKey: Uint8Array,
-    _chainCode?: Uint8Array,
+    chainCode?: Uint8Array,
     network?: network,
   ): HdNode {
     if (!privateKeyVerify(privateKey))
       throw new TypeError("Private key not in range [1, n)");
+    if (chainCode && chainCode.length !== 32)
+      throw new TypeError("Chain code must be 32 bytes");
 
     const publicKey = publicKeyCreate(privateKey, true);
-    return new HdNode(privateKey, publicKey, publicKey.slice(1), network);
+    return new HdNode(
+      privateKey,
+      publicKey,
+      chainCode,
+      network,
+    );
   }
 
   fromPublicKey(
@@ -171,6 +170,8 @@ export default class HdNode {
     // verify the X coordinate is a point on the curve
     if (!publicKeyVerify(publicKey))
       throw new TypeError("Point is not on the curve");
+    if (chainCode && chainCode.length !== 32)
+      throw new TypeError("Chain code must be 32 bytes");
 
     return new HdNode(undefined, publicKey, chainCode, network);
   }
@@ -220,36 +221,54 @@ export default class HdNode {
     return wif.encode(this.#network.wif, this.#privateKey, true);
   }
 
+  clearPrivateKey(): void {
+    this.#privateKey?.fill(0);
+    this.#privateKey = undefined;
+  }
+
   // https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#child-key-derivation-ckd-functions
   async derive(index: number): Promise<HdNode> {
     if (!this.#chainCode) throw new TypeError("Missing chain code");
+    if (this.#chainCode.length !== 32)
+      throw new TypeError("Chain code must be 32 bytes");
+    if (!Number.isInteger(index) || index < 0 || index > 0xffffffff)
+      throw new RangeError("Child index must be a uint32");
+    if (this.#depth >= 255)
+      throw new RangeError("Maximum BIP32 depth reached");
     const isHardened = index >= HIGHEST_BIT;
-    let data: Uint8Array;
-    // Hardened child
+    const data = new Uint8Array(37);
     if (isHardened) {
       const privateKey = this.#privateKey;
       if (!privateKey)
         throw new TypeError("Missing private key for hardened child key");
-      // data = 0x00 || ser256(kpar) || ser32(index)
-      data = typedArraySmartConcat([
-        new TextEncoder().encode("0"),
-        privateKey,
-        new TextEncoder().encode(index.toString()),
-      ]);
+      data.set(privateKey, 1);
     } else {
-      data = typedArraySmartConcat([
-        this.publicKey,
-        new TextEncoder().encode(index.toString()),
-      ]);
+      data.set(this.publicKey);
     }
+    data[33] = index >>> 24;
+    data[34] = (index >>> 16) & 0xff;
+    data[35] = (index >>> 8) & 0xff;
+    data[36] = index & 0xff;
     const hash = (await createHMAC(createSHA512(), this.#chainCode))
       .update(data)
       .digest("binary");
 
     const privateKey = hash.subarray(0, 32);
     const chainCode = hash.subarray(32);
+    const deriveNext = (): Promise<HdNode> => {
+      if (index === 0xffffffff)
+        throw new RangeError("No valid child index remains");
+      return this.derive(index + 1);
+    };
     // if parse256(privateKey) >= n, proceed with the next value for i
-    if (!privateKeyVerify(privateKey)) return this.derive(index + 1);
+    if (!privateKeyVerify(privateKey)) return deriveNext();
+    const fingerprint = await this.fingerprint;
+    const parentFingerprint = (
+      (fingerprint[0] << 24) |
+      (fingerprint[1] << 16) |
+      (fingerprint[2] << 8) |
+      fingerprint[3]
+    ) >>> 0;
     // Private parent key -> private child key
 
     if (!this.isNeutered) {
@@ -258,7 +277,7 @@ export default class HdNode {
       // ki = parse256(privateKey) + kpar (mod n)
       const ki = privateKeyTweakAdd(parentPrivateKey, privateKey);
       // In case ki == 0, proceed with the next value for i
-      if (ki == null) return this.derive(index + 1);
+      if (ki == null) return deriveNext();
       return new HdNode(
         ki,
         undefined,
@@ -266,52 +285,51 @@ export default class HdNode {
         this.#network,
         this.#depth + 1,
         index,
-        (await this.fingerprint)[0],
+        parentFingerprint,
       );
     }
 
-    const Ki = ecdh(this.publicKey, chainCode);
-    // const Ki = new Uint8Array(ecc.pointAddScalar(this.publicKey, IL, true));
-    // In case Ki is the point at infinity, proceed with the next value for i
-    if (Ki === null) return this.derive(index + 1);
+    const childPoint = Point.BASE
+      .multiply(etc.bytesToNumberBE(privateKey))
+      .add(Point.fromBytes(this.publicKey));
+    if (childPoint.is0()) return deriveNext();
     return new HdNode(
       undefined,
-      Ki,
+      childPoint.toBytes(true),
       chainCode,
       this.#network,
       this.#depth + 1,
       index,
-      (await this.fingerprint)[0],
+      parentFingerprint,
     );
   }
 
   deriveHardened(index: number): Promise<HdNode> {
     // Only derives hardened private keys by default
+    if (!Number.isInteger(index) || index < 0 || index >= HIGHEST_BIT)
+      throw new RangeError("Hardened child index must be a uint31");
     return this.derive(index + HIGHEST_BIT);
   }
 
   async derivePath(path: string): Promise<HdNode> {
     let splitPath = path.split("/");
     if (splitPath[0] === "m") {
-      if (this.#parentFingerprint)
+      if (this.#depth !== 0)
         throw new TypeError("Expected master, got child");
       splitPath = splitPath.slice(1);
     }
 
-    let prevHd = this;
+    let prevHd: HdNode = this;
 
     for (const indexString of splitPath) {
-      let index;
-
-      if (indexString.slice(-1) === `'`) {
-        index = parseInt(indexString.slice(0, -1), 10);
-        // @ts-ignore
-        prevHd = await prevHd.deriveHardened(index);
-      } else {
-        index = parseInt(indexString, 10);
-        // @ts-ignore
-        prevHd = await prevHd.derive(index);
-      }
+      const hardened = indexString.endsWith("'");
+      const indexText = hardened ? indexString.slice(0, -1) : indexString;
+      if (!/^\d+$/.test(indexText))
+        throw new TypeError("Invalid derivation path");
+      const index = Number(indexText);
+      prevHd = hardened
+        ? await prevHd.deriveHardened(index)
+        : await prevHd.derive(index);
     }
     return prevHd;
   }
@@ -326,17 +344,28 @@ export default class HdNode {
     network = network || networks.leofcoin;
 
     const result = typedArraySmartDeconcat(buffer);
+    if (result.length !== 6 && result.length !== 7)
+      throw new TypeError("Invalid extended key");
 
-    const version = Number(new TextDecoder().decode(result[0]));
-    const depth = Number(new TextDecoder().decode(result[1]));
-    const parentFingerprint = Number(new TextDecoder().decode(result[2]));
-    const index = Number(new TextDecoder().decode(result[3]));
+    const parseNumber = (frame: Uint8Array, max: number): number => {
+      const text = new TextDecoder().decode(frame);
+      if (!/^(0|[1-9]\d*)$/.test(text))
+        throw new TypeError("Invalid extended key metadata");
+      const value = Number(text);
+      if (!Number.isSafeInteger(value) || value > max)
+        throw new TypeError("Invalid extended key metadata");
+      return value;
+    };
 
-    const privateKey = result[6];
-    const k = privateKey ? 0 : result[5];
+    const version = parseNumber(result[0], 0xffffffff);
+    const depth = parseNumber(result[1], 0xff);
+    const parentFingerprint = parseNumber(result[2], 0xffffffff);
+    const index = parseNumber(result[3], 0xffffffff);
 
     const chainCode = result[4];
 
+    if (!chainCode || chainCode.length !== 32)
+      throw new TypeError("Invalid chain code");
     if (version !== network.bip32.private && version !== network.bip32.public)
       throw new TypeError("Invalid network version");
 
@@ -347,7 +376,15 @@ export default class HdNode {
     if (depth === 0 && index !== 0) throw new TypeError("Invalid index");
 
     if (version === network.bip32.private) {
-      if (k !== 0x00) throw new TypeError("Invalid private key");
+      const privateKey = result[6];
+      if (
+        result.length !== 7 ||
+        result[5].length !== 1 ||
+        result[5][0] !== 0x30 ||
+        privateKey.length !== 32 ||
+        !privateKeyVerify(privateKey)
+      )
+        throw new TypeError("Invalid private key");
       return new HdNode(
         privateKey,
         undefined,
@@ -358,10 +395,16 @@ export default class HdNode {
         parentFingerprint,
       );
     }
+    const publicKey = result[5];
+    if (
+      result.length !== 6 ||
+      publicKey.length !== 33 ||
+      !publicKeyVerify(publicKey)
+    )
+      throw new TypeError("Invalid public key");
     return new HdNode(
       undefined,
-      // @ts-ignore
-      k,
+      publicKey,
       chainCode,
       network,
       depth,

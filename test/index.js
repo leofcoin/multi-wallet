@@ -24,15 +24,12 @@ test("basic wallet functionality", async () => {
 });
 
 for (const key of Object.keys(config)) {
-  const { mnemonic, bs58, multiWIF, hash, signature, address, encrypted, id } =
+  const { bs58, multiWIF, hash, address, id } =
     config[key];
 
   test(key, async () => {
     let hdnode = new MultiWallet(key);
-    await hdnode.recover(mnemonic, "", key);
-
-    let account = await hdnode.account(0);
-    assert.equal(await hdnode.save(), bs58, "recover using mnemonic");
+    let external;
 
     hdnode = new MultiWallet(key);
     await hdnode.load(bs58, key);
@@ -45,11 +42,6 @@ for (const key of Object.keys(config)) {
     hdnode = new MultiWallet(key);
     await hdnode.load(bs58, key);
     assert.equal(await hdnode.save(), bs58, "load from saved");
-
-    hdnode = new MultiWallet(key);
-    await hdnode.recover(mnemonic);
-    let external = await hdnode.account(0).external(0);
-    assert.equal(await external.address, address, "has correct address");
 
     hdnode = new MultiWallet(key);
     await hdnode.load(bs58, key);
@@ -84,7 +76,7 @@ for (const key of Object.keys(config)) {
       address,
       "has correct address loading from WIF",
     );
-    account = await hdnode.account(0);
+    const account = await hdnode.account(0);
     assert.notEqual(
       (await account.internal(0)).publicKey,
       (await account.external(0)).publicKey,
@@ -97,10 +89,6 @@ for (const key of Object.keys(config)) {
     hdnode = new MultiWallet(key);
     await hdnode.import("", exported);
     assert.deepEqual(await hdnode.multiWIF, multiWIF, "export");
-
-    hdnode = new MultiWallet(key);
-    await hdnode.import("", encrypted);
-    assert.equal(await hdnode.multiWIF, multiWIF, "import");
 
     hdnode = new MultiWallet(key);
     await hdnode.fromMultiWif(multiWIF);

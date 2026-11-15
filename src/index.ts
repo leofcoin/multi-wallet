@@ -40,9 +40,11 @@ class MultiWallet extends MultiHDNode {
   }
 
   get neutered(): HDAccount {
+    const network = this.networkName ?? this.network;
+    const neuteredWallet = new MultiWallet(network, this.hdnode.neutered);
     return new HDAccount(
-      this.networkName ?? this.network,
-      this,
+      network,
+      neuteredWallet,
       this.hdnode.depth,
     );
   }

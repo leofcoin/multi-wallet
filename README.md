@@ -54,6 +54,24 @@ In short:
 ## API
 TODO...
 
+## Key derivation
+
+Mnemonic generation uses the English BIP39 wordlist with 256 bits of entropy
+(24 words), and recovery validates the BIP39 checksum before deriving the
+standard BIP39 seed and BIP32 keys. The `password` argument to `generate()` and
+`recover()` is the BIP39 passphrase; it must be identical during recovery.
+
+This changes mnemonic compatibility: phrases created by older versions may
+not be valid BIP39 and may derive different keys. Before upgrading, back up
+existing wallets using their existing save/export format and verify recovered
+addresses against known addresses before using them.
+Addresses derived by older versions may differ because those versions used a
+non-standard child-index encoding. Verify recovered addresses against known
+addresses before using the wallet. Saved wallet and MultiWIF formats are
+wallet-specific formats rather than standard BIP32 extended-key encodings.
+Standalone private/public keys and wallet IDs do not contain a BIP32 chain
+code, so they cannot derive child keys unless the chain code is supplied.
+
 ## Build for browser
 rollup.config.js
 ```js

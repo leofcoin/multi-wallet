@@ -1,7 +1,9 @@
 import HdNode from './hd-node.js';
 import base58check from '@vandeurenglenn/base58check';
-import Mnemonic from '@leofcoin/mnemonic';
+import { generateMnemonic, mnemonicToSeed, validateMnemonic } from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { createKeccak } from 'hash-wasm';
+import { Point } from '@noble/secp256k1';
 import networks from './networks.js';
 import type { network } from './index.js';
 
@@ -19,7 +21,7 @@ const fromNetworkString = (networkName: string): network => {
   if (variant) {
     const variantNetwork = Reflect.get(selectedNetwork, variant);
     if (isNetwork(variantNetwork)) selectedNetwork = variantNetwork;
-    selectedNetwork.coin_type = 1;
+    selectedNetwork = { ...selectedNetwork, coin_type: 1 };
   }
   return selectedNetwork;
 };
@@ -28,19 +30,28 @@ const publicKeyToEthereumAddress = async (
   publicKeyBuffer: Uint8Array,
 ): Promise<string> => {
   const hasher = await createKeccak(256);
-  hasher.update(publicKeyBuffer);
+  hasher.update(Point.fromBytes(publicKeyBuffer).toBytes(false).subarray(1));
 
   const hash = hasher.digest();
   return `0x${hash.slice(-40).toString()}`;
 };
 
 export default class HDWallet {
-  hdnode!: HdNode;
+  #hdnode!: HdNode;
   networkName: string | undefined;
   version: number;
   locked = false;
   network: network;
   multiCodec: number;
+
+  get hdnode(): HdNode {
+    return this.#hdnode;
+  }
+
+  protected set hdnode(value: HdNode) {
+    this.assertUnlocked();
+    this.#hdnode = value;
+  }
 
   get privateKey(): Uint8Array | undefined {
     return this.ifNotLocked(() => this.hdnode.privateKey);
@@ -106,11 +117,12 @@ export default class HDWallet {
   }
 
   async defineHDNode(value: HdNode): Promise<void> {
-    Object.defineProperty(this, 'hdnode', {
-      configurable: false,
-      writable: false,
-      value: await value,
-    });
+    this.assertUnlocked();
+    this.hdnode = value;
+  }
+
+  protected assertUnlocked(): void {
+    if (this.locked) throw new Error('Wallet is locked');
   }
 
   validateNetwork(network?: string | network): network {
@@ -124,11 +136,12 @@ export default class HDWallet {
     password = '',
     network?: string | network,
   ): Promise<string> {
+    this.assertUnlocked();
     const resolvedNetwork = this.validateNetwork(network);
-    const mnemonic = await new Mnemonic({}).generate(512);
-    const seed = await new Mnemonic({}).seedFromMnemonic(mnemonic, password, 512);
+    const mnemonic = generateMnemonic(wordlist, 256);
+    const seed = await mnemonicToSeed(mnemonic, password);
     this.hdnode = await new HdNode().fromSeed(
-      new Uint8Array(seed),
+      seed,
       resolvedNetwork,
     );
     return mnemonic;
@@ -142,15 +155,19 @@ export default class HDWallet {
     password = '',
     network?: string | network,
   ): Promise<void> {
+    this.assertUnlocked();
+    if (!validateMnemonic(mnemonic, wordlist))
+      throw new TypeError('Invalid BIP39 mnemonic');
     const resolvedNetwork = this.validateNetwork(network);
-    const seed = await new Mnemonic({}).seedFromMnemonic(mnemonic, password, 512);
+    const seed = await mnemonicToSeed(mnemonic, password);
     this.hdnode = await new HdNode().fromSeed(
-      new Uint8Array(seed),
+      seed,
       resolvedNetwork,
     );
   }
 
   async load(encoded: string, network?: string | network): Promise<void> {
+    this.assertUnlocked();
     this.hdnode = await new HdNode().fromBase58(
       encoded,
       this.validateNetwork(network),
@@ -166,12 +183,13 @@ export default class HDWallet {
     chainCode: Uint8Array | undefined,
     network?: string | network,
   ): Promise<void> {
+    this.assertUnlocked();
     const publicKey = typeof address === 'string'
       ? (await base58check.decode(address)).data
       : new Uint8Array(address);
     this.hdnode = await new HdNode().fromPublicKey(
       publicKey,
-      chainCode ?? publicKey.slice(1),
+      chainCode,
       this.validateNetwork(network),
     );
   }
@@ -181,9 +199,10 @@ export default class HDWallet {
     chainCode: Uint8Array | undefined,
     network: string | network,
   ): Promise<this> {
+    this.assertUnlocked();
     this.hdnode = await new HdNode().fromPublicKey(
       publicKey,
-      chainCode ?? publicKey.slice(1),
+      chainCode,
       this.validateNetwork(network),
     );
     return this;
@@ -194,6 +213,7 @@ export default class HDWallet {
     chainCode?: Uint8Array,
     network?: string | network,
   ): Promise<void> {
+    this.assertUnlocked();
     this.hdnode = await new HdNode().fromPrivateKey(
       privateKey,
       chainCode,
